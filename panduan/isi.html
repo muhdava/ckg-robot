@@ -1,0 +1,511 @@
+<body>
+
+<!-- ============================================================ SAMPUL -->
+<section class="sampul">
+  <div class="kecil" style="letter-spacing:.12em; text-transform:uppercase; margin-bottom:10px">Panduan Petugas</div>
+  <h1>CKG Robot</h1>
+  <div class="sub">Input otomatis Cek Kesehatan Gratis di portal Sehat Indonesiaku<br>
+    Dari membuat akun sampai pemakaian sehari-hari</div>
+  <div class="ringkas">
+    <b>Ringkasnya</b>
+    <ol>
+      <li>Buka <b>ckg-robot.netlify.app</b>, pilih <b>Daftar</b>, lalu tunggu akunmu <b>disetujui admin</b>.</li>
+      <li>Setelah disetujui: masuk ke website, <b>unduh Setup CKG Robot</b>. Python sudah termasuk.</li>
+      <li>Jalankan Setup: <b>Lanjut → Pasang</b> (sekali saja, butuh internet).</li>
+      <li>Setiap kali bekerja: klik <b>ikon CKG Robot</b> di Desktop, <b>masuk dengan email &amp; kata sandi</b>,
+        pilih data, login portal, tunggu.</li>
+      <li>Ada versi baru? Tekan <b>Perbarui sekarang</b> di aplikasi. Tidak perlu memasang ulang.</li>
+    </ol>
+  </div>
+  <p class="kecil" style="margin-top:22px">Pemasang: CKG-Robot-Setup.exe (Python sudah termasuk) · Windows 10/11 64-bit ·
+    panduan untuk aplikasi dengan login online (Oktober 2026)</p>
+</section>
+
+<!-- ============================================================ DAFTAR ISI -->
+<section class="bab">
+  <h2>Daftar isi</h2>
+  <table class="daftar-isi">
+    <tr><td><b>A.</b> Yang perlu disiapkan</td><td>{{A}}</td></tr>
+    <tr><td><b>B.</b> Membuat akun CKG Robot</td><td>{{B}}</td></tr>
+    <tr><td><b>C.</b> Pemasangan (sekali saja)</td><td>{{C}}</td></tr>
+    <tr><td><b>D.</b> Menyiapkan data peserta</td><td>{{D}}</td></tr>
+    <tr><td><b>E.</b> Menjalankan CKG Robot</td><td>{{E}}</td></tr>
+    <tr><td><b>F.</b> Membaca hasil</td><td>{{F}}</td></tr>
+    <tr><td><b>G.</b> Aturan yang menghemat waktu</td><td>{{G}}</td></tr>
+    <tr><td><b>H.</b> Memperbarui aplikasi</td><td>{{H}}</td></tr>
+    <tr><td><b>I.</b> Kalau ada masalah</td><td>{{I}}</td></tr>
+    <tr><td><b>J.</b> Khusus admin: Kelola Petugas</td><td>{{J}}</td></tr>
+  </table>
+
+  <h2 style="margin-top:22px">Apa itu CKG Robot?</h2>
+  <p>CKG Robot mengisi pendaftaran dan pemeriksaan CKG di portal <b>sehatindonesiaku.kemkes.go.id</b> secara
+  otomatis, dari data Excel/CSV. Robot yang mengetik dan mengklik. Petugas tetap yang <b>login</b> ke portal
+  dan yang <b>menentukan datanya</b>.</p>
+  <p>Jenis CKG yang didukung: <b>Dewasa/Lansia</b>, <b>CKG Sekolah</b> (SD sampai SMA), dan <b>Balita</b>
+  (termasuk balita tanpa NIK).</p>
+
+  <h3>Dua akun yang berbeda</h3>
+  <table>
+    <tr><th style="width:30%">Akun</th><th>Dipakai untuk</th><th style="width:30%">Didapat dari</th></tr>
+    <tr><td><b>Akun CKG Robot</b><br><span class="kecil">email + kata sandi</span></td>
+      <td>Masuk ke <b>website</b> (unduh &amp; panduan) dan ke <b>aplikasi</b> CKG Robot.</td>
+      <td>Daftar sendiri, lalu <b>disetujui admin</b> (bagian B).</td></tr>
+    <tr><td><b>Akun portal Sehat Indonesiaku</b></td>
+      <td>Login ke portal di jendela browser robot (ada captcha).</td>
+      <td>Akun milik puskesmas, seperti biasa.</td></tr>
+  </table>
+  <div class="kotak catat"><b>Robot berjalan di komputer sendiri</b>
+  Bukan di server. Komputer harus tetap menyala dan terhubung internet selama robot bekerja. Data peserta tidak
+  pernah dikirim ke server akun, hanya ke portal Sehat Indonesiaku.</div>
+</section>
+
+<!-- ============================================================ A -->
+<section class="bab">
+  <h2 id="A">A. Yang perlu disiapkan</h2>
+  <ul>
+    <li>Komputer <b>Windows 10 atau 11</b> (64-bit) dengan internet.</li>
+    <li><b>Google Chrome</b> (disarankan). Kalau tidak ada, robot memakai browser cadangan yang dipasang otomatis.</li>
+    <li><b>Akun portal Sehat Indonesiaku</b> milik puskesmas.</li>
+    <li><b>Email</b> yang aktif untuk mendaftar akun CKG Robot.</li>
+  </ul>
+  <table>
+    <tr><th>Berkas</th><th>Ukuran</th><th>Diunduh dari</th></tr>
+    <tr><td><code>CKG-Robot-Setup.exe</code></td><td>± 13 MB</td><td><b>ckg-robot.netlify.app</b>, setelah akun disetujui</td></tr>
+  </table>
+  <p class="kecil">Tidak perlu memasang Python sendiri: Python sudah termasuk di Setup. Python yang mungkin sudah ada
+  di komputer tidak terganggu. Saat Setup berjalan, sekitar 40 MB pustaka dan browser robot diunduh.</p>
+
+  <!-- ============================================================ B -->
+  <h2 id="B" style="margin-top:20px">B. Membuat akun CKG Robot</h2>
+  <div class="langkah">
+  <h3><span class="n">1</span> Daftar di website</h3>
+  <ol>
+    <li>Buka <b>ckg-robot.netlify.app</b> di browser.</li>
+    <li>Pilih tab <b class="tombol">Daftar</b>.</li>
+    <li>Isi nama lengkap, puskesmas, no. HP/WhatsApp, email, dan kata sandi (minimal 8 karakter) dua kali.</li>
+    <li>Tekan <b class="tombol">Kirim pendaftaran</b>.</li>
+  </ol>
+  </div>
+</section>
+
+<section>
+  <div style="display:flex; gap:14px; align-items:flex-start; page-break-inside:avoid">
+    <figure style="flex:1"><img src="gambar/w1-masuk.png"><figcaption>Halaman masuk website</figcaption></figure>
+    <figure style="flex:1"><img src="gambar/w2-daftar.png"><figcaption>Tab "Daftar" sudah diisi</figcaption></figure>
+  </div>
+
+  <div class="langkah">
+  <h3><span class="n">2</span> Tunggu persetujuan admin</h3>
+  <p>Sesudah mendaftar, muncul layar <b>"Menunggu persetujuan"</b>. Kabari admin CKG Robot bahwa kamu sudah
+  mendaftar. Setelah disetujui, tekan <b class="tombol">Periksa lagi</b> atau buka websitenya lagi.</p>
+  <figure><img src="gambar/w3-menunggu.png" style="max-width:82mm; margin:0 auto"><figcaption>Akun menunggu persetujuan admin</figcaption></figure>
+  </div>
+</section>
+
+<section>
+  <div class="langkah">
+  <h3><span class="n">3</span> Setelah disetujui: unduh dan pelajari</h3>
+  <p>Website terbuka. Di sana ada:</p>
+  <ul>
+    <li><b class="tombol">Unduh CKG Robot</b>: pemasang aplikasi (Setup). Nomor versi dan tanggalnya tertulis di bawah tombol.</li>
+    <li><b class="tombol">Baca panduan (PDF)</b>: panduan ini.</li>
+    <li><b>Coba demo</b>: aplikasi asli dalam mode latihan dengan data rekaan. Coba dulu sebelum memakai yang sungguhan.</li>
+  </ul>
+  <figure><img src="gambar/w4-terbuka.png"><figcaption>Website setelah akun disetujui</figcaption></figure>
+  </div>
+  <div class="kotak tips"><b>Bisa juga mendaftar dari aplikasi</b>
+  Halaman masuk aplikasi punya tautan <b>Daftar akun baru</b> dengan isian yang sama. Akunnya sama persis dengan
+  akun website.</div>
+  <div class="kotak catat"><b>Satu akun untuk satu orang</b>
+  Akun dipakai di website <b>dan</b> aplikasi. Di aplikasi, satu akun bisa dipakai di beberapa komputer
+  (bawaan: 2). Komputer lama bisa dilepas admin. Lupa kata sandi? Minta admin menggantinya.</div>
+</section>
+
+<!-- ============================================================ C -->
+<section class="bab">
+  <h2 id="C">C. Pemasangan (sekali saja)</h2>
+
+  <div class="langkah">
+  <h3><span class="n">1</span> Jalankan <code>CKG-Robot-Setup.exe</code></h3>
+  <p>Klik ganda berkas yang diunduh dari website (biasanya di folder <b>Downloads</b>). Tidak perlu izin
+  administrator.</p>
+  <p>Windows mungkin menampilkan layar biru <b>"Windows protected your PC"</b>. Klik <b>More info</b>, lalu
+  <b class="tombol">Run anyway</b>.</p>
+  <div class="jendela" style="max-width:120mm; margin:0 auto">
+    <div class="judul" style="background:#1d4ed8; color:#fff; border-color:#1d4ed8">Microsoft Defender SmartScreen</div>
+    <div class="isi" style="background:#1d4ed8; color:#fff">
+      <div class="besar">Windows protected your PC</div>
+      <div style="font-size:9pt">Microsoft Defender SmartScreen prevented an unrecognized app from starting…</div>
+      <div style="margin:8px 0"><span class="sorot" style="outline-color:#fde047; text-decoration:underline">More info</span>
+        <span style="margin-left:6px">← 1. klik ini</span></div>
+      <div style="font-size:9pt">App: CKG-Robot-Setup-….exe</div>
+      <div style="text-align:right; margin-top:8px"><span class="sorot" style="outline-color:#fde047; border:1px solid #fff; padding:4px 12px">Run anyway</span>
+        <span style="margin-left:6px">← 2. lalu ini</span>
+        <span style="border:1px solid #fff; padding:4px 12px; margin-left:6px">Don't run</span></div>
+    </div>
+  </div>
+  <p class="kecil" style="text-align:center">Ilustrasi peringatan Windows. Tombol Run anyway baru muncul setelah More info diklik.</p>
+  <div class="kotak catat"><b>Kenapa ada peringatan?</b>
+  Windows memperingatkan semua program yang belum memakai sertifikat penerbit berbayar. Itu bukan tanda berbahaya.
+  Unduh Setup <b>hanya dari website CKG Robot</b>.</div>
+  </div>
+
+  <div class="langkah">
+  <h3><span class="n">2</span> Klik <b class="tombol">Lanjut</b>, lalu <b class="tombol">Pasang</b></h3>
+  <div class="jendela" style="max-width:130mm; margin:0 auto">
+    <div class="judul">Pemasangan - CKG Robot</div>
+    <div class="isi">
+      <div style="display:flex; gap:14px; align-items:flex-start">
+        <img src="gambar/ikon.png" style="width:16mm; height:16mm; border:0; box-shadow:none">
+        <div>
+          <div class="besar">Selamat datang di pemasangan CKG Robot</div>
+          <div style="font-size:9.5pt">Python sudah termasuk - tidak perlu memasang apa pun lagi. Pemasangan memerlukan
+          INTERNET untuk mengunduh pustaka dan browser (beberapa menit).</div>
+          <div class="cek" style="margin-top:8px"><span class="kotakcek">✓</span> Buat ikon CKG Robot di Desktop</div>
+        </div>
+      </div>
+      <div style="text-align:right; margin-top:10px"><span class="sorot" style="border:1px solid #c4ccd4; padding:4px 12px">Lanjut &gt;</span>
+        <span style="border:1px solid #c4ccd4; padding:4px 12px; margin-left:6px">Batal</span></div>
+    </div>
+  </div>
+  <p class="kecil" style="text-align:center">Ilustrasi layar pertama Setup</p>
+  </div>
+  <p>Setelah <b class="tombol">Pasang</b> ditekan, berkas disalin, lalu sebuah <b>jendela hitam</b> mengunduh
+  pustaka dan browser robot. Butuh internet, sekitar <b>2–5 menit</b>. Jendela itu menutup sendiri bila selesai.
+  Jangan ditutup.</p>
+  <div class="terminal">[1/3] Memasang pustaka Python (perlu internet)...
+Successfully installed playwright-1.6x ...
+
+[2/3] Menyiapkan browser untuk Playwright...
+[3/3] Shortcut dibuat oleh Setup.
+
+<span class="hijau">==============================================================
+  SELESAI. Mulai sekarang cukup klik ganda ikon CKG Robot
+  di Desktop.
+==============================================================</span></div>
+  <p>Di layar terakhir Setup, biarkan <b>Buka CKG Robot sekarang</b> tercentang, lalu klik <b class="tombol">Selesai</b>.</p>
+  <div class="kotak tips"><b>Internet putus saat pemasangan?</b>
+  Tidak apa-apa. Pemasangan pustaka dicoba lagi otomatis saat CKG Robot pertama kali dibuka.</div>
+
+  <div class="langkah">
+  <h3><span class="n">3</span> Ikon CKG Robot</h3>
+  <div style="display:flex; gap:18px; align-items:center; page-break-inside:avoid">
+    <div style="text-align:center; width:30mm; flex:none">
+      <img src="gambar/ikon.png" style="width:15mm; height:15mm; border:0; box-shadow:none; margin:0 auto">
+      <div style="font-size:9pt; margin-top:3px">CKG Robot</div>
+    </div>
+    <div>Setelah Setup selesai, ikon ini ada di <b>Desktop</b> dan di <b>Start Menu</b>. Mulai sekarang yang
+    diklik hanya ikon ini.<br>
+    Di Start Menu juga ada <b>CKG Robot - folder data</b> untuk membuka folder <code>data\</code>,
+    <code>hasil\</code>, dan <code>template\</code>.</div>
+  </div>
+  <div class="folder">CKG Robot\   (dibuka lewat "CKG Robot - folder data")
+  data\            berkas CSV peserta
+  hasil\           hasil kerja robot (dibuat sendiri)
+  template\        template Excel data peserta
+  Panduan CKG Robot.pdf  panduan ini
+  pengaturan.txt      pengaturan lanjutan
+  python\, inti\     isi program, tidak perlu dibuka</div>
+  <p class="kecil">Aplikasi dipasang di <code>C:\Users\&lt;nama&gt;\AppData\Local\CKG Robot</code>. Menghapusnya lewat
+  <b>Settings → Apps → CKG Robot → Uninstall</b>; folder <code>data\</code>, <code>hasil\</code>, dan pengaturan tidak ikut terhapus.</p>
+  </div>
+  <div class="kotak catat"><b>Sudah memakai CKG Robot versi ZIP?</b>
+  Tidak perlu memasang Setup. Perbarui saja lewat tombol <b>Perbarui sekarang</b> di aplikasi (bagian H). Ikon
+  CKG Robot di Desktop muncul sendiri setelah pembaruan. Memasang Setup juga berarti punya dua salinan dengan
+  folder <code>data\</code> dan <code>hasil\</code> yang terpisah.</div>
+  <div class="kotak tips"><b>Pemasangan selesai</b>
+  Langkah 1–3 cukup sekali per komputer. Versi baru nanti dipasang dari dalam aplikasi (bagian H).</div>
+</section>
+
+<!-- ============================================================ D -->
+<section class="bab">
+  <h2 id="D">D. Menyiapkan data peserta</h2>
+  <p>Robot bekerja dari berkas <b>CSV</b> di folder <code>data\</code>. Ada dua cara menyiapkannya.</p>
+
+  <h3><span class="n">1</span> Cara mudah: ubah langsung di aplikasi</h3>
+  <p>Di halaman aplikasi (lihat bagian E), buka kartu <b>"1 Siapkan data dari Excel"</b> di paling atas. Pilih
+  berkas Excel dari mana saja, atau seret ke kotak bergaris. Lalu tekan <b class="tombol">Ubah jadi CSV</b>.
+  Hasilnya langsung masuk ke <code>data\</code> dan bisa dipilih.</p>
+  <figure><img src="gambar/a4-konversi.png" style="max-width:132mm; margin:0 auto"><figcaption>Kartu "Siapkan data dari Excel"</figcaption></figure>
+  <p>Bentuk yang dikenali sendiri: register kesehatan sekolah (lembar KELAS 1, KELAS 2, …), skrining TBC,
+  buku kunjungan, berkas berformat template, dan bentuk bebas yang judul kolomnya jelas. Lembar bernama
+  <i>Laporan</i>, <i>Rekap</i>, atau <i>Perlu Dicek</i> dilewati.</p>
+  <ul>
+    <li><b>Kelas yang diambil</b>: khusus register sekolah, mis. <code>7 8</code>. Kosong berarti semua kelas.</li>
+    <li><b>Nama sekolah di portal</b>: isi bila berkasnya tidak menyebut nama sekolah.</li>
+    <li><b>Samakan tanggal lahir &amp; jenis kelamin dengan NIK</b>: biarkan tercentang. Portal mencocokkan keduanya ke NIK.</li>
+  </ul>
+</section>
+
+<section>
+  <h3><span class="n">2</span> Cara manual: isi template</h3>
+  <p>Buka folder <code>template\</code> dan pilih yang sesuai:</p>
+  <table>
+    <tr><th>Template</th><th>Untuk</th></tr>
+    <tr><td><code>Template CKG SEKOLAH.xlsx</code></td><td>Murid SD sampai SMA</td></tr>
+    <tr><td><code>Template DEWASA-LANSIA (parameter).xlsx</code></td><td>Dewasa/lansia, hasil ukur ditulis Normal/Rendah/Tinggi</td></tr>
+    <tr><td><code>Template DEWASA-LANSIA (real data).xlsx</code></td><td>Dewasa/lansia, hasil ukur berupa angka</td></tr>
+    <tr><td><code>Template CKG BALITA.xlsx</code></td><td>Balita 0–6 tahun yang punya NIK</td></tr>
+    <tr><td><code>Template CKG BALITA TANPA NIK.xlsx</code></td><td>Bayi yang NIK-nya belum terbit (pakai data wali)</td></tr>
+  </table>
+  <p>Isi di Excel, lalu masukkan lewat cara 1 di atas. Bisa juga <b>File → Save As → CSV UTF-8</b> dan
+  simpan ke folder <code>data\</code>.</p>
+
+  <div class="kotak penting"><b>Empat aturan data</b>
+  1) <b>Jangan menambah, menghapus, atau menggeser kolom template.</b> Robot mengenali data dari posisi kolomnya.<br>
+  2) <b>NIK harus 16 digit dan tersimpan sebagai teks.</b> NIK yang pernah menjadi angka di Excel kehilangan digit
+  terakhirnya (berubah jadi 0), lalu ditolak portal, atau lebih buruk, menunjuk orang lain.<br>
+  3) <b>CKG Sekolah: nama sekolah dan kelas harus sama persis dengan tulisan di portal</b>,
+  mis. <code>SMP Al-Khairiyah I</code>, <code>Kelas 7</code>.<br>
+  4) <b>Kolom pemeriksaan yang kosong diisi nilai bawaan</b> (mis. Hb 13, Normal). Peserta yang tidak diperiksa
+  jangan dimasukkan.</div>
+</section>
+
+<!-- ============================================================ E -->
+<section class="bab">
+  <h2 id="E">E. Menjalankan CKG Robot</h2>
+
+  <div class="langkah">
+  <h3><span class="n">1</span> Klik ikon <b>CKG Robot</b> di Desktop, lalu masuk</h3>
+  <p>Halaman aplikasi muncul sendiri di browser. Jendela hitam aplikasi mengecil sendiri ke <b>taskbar</b>. Kalau
+  halaman tidak terbuka, ketik <code>localhost:8765</code> di browser.</p>
+  <div class="kotak penting"><b>Jangan tutup jendela hitam di taskbar selama bekerja</b>
+  Jendela hitam adalah mesin aplikasinya. Menutupnya berarti mematikan robot. Kalau ada galat, jendela itu muncul
+  sendiri dengan pesannya.</div>
+  <p>Masuk dengan <b>email dan kata sandi akun CKG Robot</b> (bagian B), bukan akun portal.</p>
+  <div style="display:flex; gap:14px; align-items:flex-start; page-break-inside:avoid">
+    <figure style="flex:1"><img src="gambar/a1-masuk.png"><figcaption>Halaman masuk aplikasi (tanda <b>online</b>)</figcaption></figure>
+    <figure style="flex:1"><img src="gambar/a2-menunggu.png"><figcaption>Contoh pesan: akun belum disetujui</figcaption></figure>
+  </div>
+  <p class="kecil">Masuk membutuhkan internet, karena akunnya diperiksa ke server. Pesan bila ditolak dijelaskan di bagian I.</p>
+  </div>
+</section>
+
+<section>
+  <div class="langkah">
+  <h3><span class="n">2</span> Pilih pekerjaan</h3>
+  <figure><img src="gambar/a3-pilih-pekerjaan.png"><figcaption>Halaman aplikasi. Di kanan atas: nomor versi, tombol Periksa pembaruan, dan nama akunmu</figcaption></figure>
+  <table>
+    <tr><th style="width:28%">Isian</th><th>Isi dengan</th></tr>
+    <tr><td><b>Berkas data peserta</b></td><td>Berkas CSV di folder <code>data\</code>. Jumlah pesertanya tertulis di sebelahnya.</td></tr>
+    <tr><td><b>Nomor data</b></td><td>Baris yang dikerjakan: <code>7</code>, <code>1-1000</code>, atau <code>1-500, 640</code>. Awalnya terisi <code>1-100</code>. Sekali jalan boleh sampai ratusan peserta (sudah diuji 1000).</td></tr>
+    <tr><td><b>Alur CKG</b></td><td>Klik salah satu kartu alur. Penjelasannya ada di tabel berikut.</td></tr>
+    <tr><td><b>Jenis CKG</b></td><td>Biarkan <b>"Ikuti isi berkas (disarankan)"</b>.</td></tr>
+    <tr><td><b>Jumlah browser</b></td><td><b>1 browser.</b> Naikkan hanya bila punya beberapa akun portal yang berbeda (lihat bagian G).</td></tr>
+  </table>
+  </div>
+</section>
+
+<section>
+  <div class="langkah">
+  <p><b>Memilih alur:</b></p>
+  <table>
+    <tr><th style="width:36%">Alur</th><th>Pakai bila</th></tr>
+    <tr><td><b>Pendaftaran → Selesai</b></td><td>Semua peserta <b>baru</b>. Didaftarkan, dimulai pemeriksaannya, lalu semua form diisi. Yang dijawab portal "sudah menerima layanan" dilewati. Paling cepat.</td></tr>
+    <tr><td><b>Pendaftaran → Pelayanan → Selesai</b></td><td>Berkas <b>bercampur</b>: sebagian belum terdaftar, sebagian sudah terdaftar tapi formnya belum diisi. Yang "sudah menerima layanan" dilanjutkan lewat halaman pelayanan.</td></tr>
+    <tr><td><b>Pendaftaran → Konfirmasi Hadir → Selesai</b></td><td>Peserta <b>sudah terdaftar tapi belum dikonfirmasi hadir</b>. Dicari di daftar pendaftaran, dikonfirmasi hadir, lalu formnya diisi.</td></tr>
+    <tr><td><b>Pelayanan → Selesai</b></td><td>Semua peserta <b>sudah terdaftar</b>, tinggal diisi formnya. Yang sudah ada di tab "Selesai Pemeriksaan" dilewati.</td></tr>
+    <tr><td><b>Pelayanan → Selesai (sapu tab Selesai)</b></td><td>Seperti di atas, tapi peserta di tab "Selesai Pemeriksaan" ikut dibuka, lalu form yang masih kosong diisi.</td></tr>
+  </table>
+  <div class="kotak tips"><b>Ragu memilih?</b>
+  Pakai <b>Pendaftaran → Pelayanan → Selesai</b>. Sedikit lebih lambat, tapi tidak ada peserta yang tertinggal.</div>
+  </div>
+
+  <div class="langkah">
+  <h3><span class="n">3</span> Tekan <b class="tombol">Buka browser &amp; mulai</b>, lalu login portal</h3>
+  <ol>
+    <li>Jendela browser baru terbuka di halaman portal Sehat Indonesiaku.</li>
+    <li><b>Login sendiri</b> di jendela itu dengan akun puskesmas (ada captcha, jadi harus manusia).</li>
+    <li>Kembali ke halaman aplikasi, tekan <b class="tombol">Saya sudah login — lanjutkan</b>.</li>
+  </ol>
+  <figure><img src="gambar/a5-menunggu-login.png" style="max-width:150mm; margin:0 auto"><figcaption>Aplikasi menunggu login portal</figcaption></figure>
+  <p class="kecil">Sesi login portal tersimpan, jadi biasanya tidak perlu login lagi setiap kali, hanya saat sesinya habis.</p>
+  </div>
+</section>
+
+<section>
+  <div class="langkah">
+  <h3><span class="n">4</span> Tunggu dan pantau</h3>
+  <p>Kartu <b>Kemajuan</b> menunjukkan jumlah peserta yang sudah dikerjakan. Satu peserta penuh butuh sekitar
+  <b>3–4 menit</b>. Catatan proses lengkap ada di kartu <b>5 Catatan proses</b> di bawahnya.</p>
+  <figure><img src="gambar/a6-kemajuan.png" style="max-width:150mm; margin:0 auto"><figcaption>Kartu "3 Kemajuan" setelah batch selesai</figcaption></figure>
+  <ul>
+    <li><b>Jangan menyentuh jendela browser robot</b>: jangan dipindah, ditutup, atau diklik selama bekerja.</li>
+    <li>Untuk berhenti dengan rapi, tekan <b class="tombol">Hentikan setelah peserta ini</b>. Peserta yang sedang dikerjakan diselesaikan dulu.</li>
+    <li>Kalau portal sedang padat ("429 Too Many Requests") atau halaman macet setelah Kirim, robot menunggu,
+      memuat ulang, lalu melanjutkan sendiri.</li>
+  </ul>
+  </div>
+
+  <!-- ============================================================ F -->
+  <h2 id="F" style="margin-top:20px">F. Membaca hasil</h2>
+  <figure><img src="gambar/a7-hasil.png" style="max-width:140mm; margin:0 auto"><figcaption>Kartu "4 Hasil" (contoh dengan data rekaan)</figcaption></figure>
+</section>
+
+<section>
+  <ul>
+    <li><b>Keping status</b> di atas tabel menunjukkan jumlah tiap status. Klik untuk mengunduh status itu saja.</li>
+    <li><b class="tombol">⬇ Unduh Excel</b>: daftar hasil (No, NIK, Nama, Tanggal Lahir, Status) dan lembar Rekap.</li>
+    <li><b class="tombol">📄 Buat Laporan</b>: berkas data yang dijalankan, ditambah kolom Hasil.</li>
+    <li>Semua hasil juga tersimpan otomatis di folder <code>hasil\</code>.</li>
+  </ul>
+  <div class="kotak catat"><b>Unduh dulu sebelum batch berikutnya</b>
+  Tabel hasil di layar diganti setiap kali "Buka browser &amp; mulai" ditekan lagi. Berkas di folder <code>hasil\</code> tetap aman.</div>
+
+  <h3>Arti status</h3>
+  <table>
+    <tr><th style="width:30%">Status</th><th>Artinya</th><th style="width:20%">Diulang?</th></tr>
+    <tr><td><span class="tag t-ok">tuntas</span></td><td>Selesai penuh, semua form terisi</td><td>Tidak</td></tr>
+    <tr><td><span class="tag t-abu">sudah_pelayanan</span></td><td>Portal menyatakan peserta sudah dilayani</td><td>Tidak</td></tr>
+    <tr><td><span class="tag t-ok">ckg_sekolah</span> <span class="tag t-ok">ckg_umum</span></td><td>Sudah diperiksa lewat jalur CKG yang lain</td><td>Tidak</td></tr>
+    <tr><td><span class="tag t-ungu">puskesmas_berbeda</span></td><td>Sudah diperiksa puskesmas lain (nama dan tanggalnya di keterangan)</td><td>Tidak</td></tr>
+    <tr><td><span class="tag t-ungu">sekolah_berbeda</span> <span class="tag t-ungu">kelas_berbeda</span></td><td>Murid tercatat di sekolah atau kelas lain. Betulkan datanya</td><td>Tidak</td></tr>
+    <tr><td><span class="tag t-oranye">tidak_valid</span></td><td>Portal menolak datanya (biasanya NIK, nama, atau tanggal lahir salah)</td><td>Tidak, betulkan dulu</td></tr>
+    <tr><td><span class="tag t-kuning">tidak_ditemukan</span></td><td>Tidak ada di daftar. Periksa NIK, sekolah, atau kelas</td><td>Ya</td></tr>
+    <tr><td><span class="tag t-merah">gagal…</span> <span class="tag t-merah">tanpa_tiket</span></td><td>Langkahnya gagal, sering karena portal lambat</td><td>Ya</td></tr>
+    <tr><td><span class="tag t-merah">layanan_sebagian</span></td><td>Sebagian form belum terisi</td><td>Ya</td></tr>
+  </table>
+  <p class="kecil">Tangkapan layar setiap kegagalan tersimpan di <code>hasil\gagal\</code>.</p>
+
+  <!-- ============================================================ G -->
+  <h2 id="G" style="margin-top:18px">G. Aturan yang menghemat waktu</h2>
+  <ul>
+    <li><b>Batch berhenti sendiri setelah 3 kegagalan beruntun.</b> Tutup browsernya, lalu jalankan lagi dengan
+      <b>nomor data yang sama</b>. Yang sudah selesai dilewati otomatis, jadi tidak ada yang dikerjakan dua kali.</li>
+    <li><b>Peserta <span class="tag t-oranye">tidak_valid</span> tidak dicoba lagi</b> pada jalan berikutnya.
+      Betulkan datanya dulu. Untuk mencoba lagi, ubah <code>ulang tidak valid = ya</code> di <code>pengaturan.txt</code>.</li>
+    <li><b>Beberapa pekerja sekaligus</b>: tiap pekerja membuka browsernya sendiri dan harus dilogin dengan
+      <b>akun portal yang berbeda</b>. Jangan memakai satu akun portal di dua browser.</li>
+  </ul>
+</section>
+
+<!-- ============================================================ H -->
+<section class="bab">
+  <h2 id="H">H. Memperbarui aplikasi</h2>
+  <p>Versi yang sedang dipakai tertulis di kanan atas aplikasi, mis. <code>v2026.10.07.2058</code>. Saat admin
+  menerbitkan versi baru, aplikasi memberi tahu sendiri. Tidak perlu mengunduh ZIP lagi.</p>
+
+  <div class="langkah">
+  <h3><span class="n">1</span> Pita "Versi baru tersedia"</h3>
+  <p>Muncul di atas halaman setelah masuk, berisi nomor versi baru dan catatan perubahannya.</p>
+  <figure><img src="gambar/u1-pita.png"><figcaption>Pemberitahuan versi baru</figcaption></figure>
+  </div>
+
+  <div class="langkah">
+  <h3><span class="n">2</span> Tekan <b class="tombol">Perbarui sekarang</b></h3>
+  <ol>
+    <li>Pastikan robot <b>tidak sedang bekerja</b>. Selama robot bekerja, tombol ini ditolak.</li>
+    <li>Tekan tombolnya, lalu setujui pertanyaan yang muncul.</li>
+    <li>Aplikasi mengunduh, memeriksa keutuhan paket, menyimpan cadangan versi lama, memasang, lalu
+      <b>memulai ulang dirinya sendiri</b> di jendela hitam yang sama. Biasanya kurang dari setengah menit.</li>
+    <li>Halaman kembali ke layar masuk. <b>Masuk lagi</b>. Nomor versi di kanan atas sudah yang baru.</li>
+  </ol>
+  <figure><img src="gambar/u3-memperbarui.png"><figcaption>Sedang memasang pembaruan</figcaption></figure>
+  </div>
+</section>
+
+<section>
+  <div class="kotak tips"><b>Data tidak tersentuh</b>
+  Pembaruan hanya mengganti kode aplikasi dan template. Folder <code>data\</code>, <code>hasil\</code>, <code>mentah\</code>,
+  <code>pengaturan.txt</code>, dan sesi login portal tetap seperti semula. Kalau pembaruan gagal di tengah,
+  aplikasi otomatis kembali ke versi lama dan tetap bisa dipakai.</div>
+
+  <div class="langkah">
+  <h3><span class="n">3</span> Tombol <b class="tombol">⟳ Periksa pembaruan</b></h3>
+  <p>Memeriksa versi baru tanpa keluar-masuk. Hasilnya tampil di tombol itu sendiri: <b>✓ Sudah versi terbaru</b>,
+  atau <b>🔔 Ada versi baru</b> dan pitanya langsung muncul. Aplikasi juga memeriksa sendiri tiap jam
+  selama tidak sedang bekerja.</p>
+  <figure><img src="gambar/u4-periksa.png"><figcaption>Versi baru ditemukan lewat "Periksa pembaruan"</figcaption></figure>
+  </div>
+
+  <div class="langkah">
+  <h3><span class="n">4</span> Pembaruan wajib (pita merah)</h3>
+  <p>Kalau admin mewajibkan versi tertentu, pita berwarna merah. Aplikasi tetap bisa dibuka, tetapi
+  <b>pekerjaan tidak bisa dimulai</b> sebelum diperbarui. Tekan <b class="tombol">Perbarui sekarang</b>.</p>
+  <figure><img src="gambar/u2-wajib.png"><figcaption>Pembaruan wajib</figcaption></figure>
+  </div>
+  <div class="kotak catat"><b>Memakai aplikasi versi lama (sebelum Oktober 2026)?</b>
+  Versi lama belum punya tombol pembaruan. Pasang Setup terbaru dari website, lalu salin folder <code>data\</code>
+  dan <code>hasil\</code> dari folder lama ke folder baru (Start Menu → <b>CKG Robot - folder data</b>).
+  Sesudah itu semua pembaruan lewat tombol.</div>
+</section>
+
+<!-- ============================================================ I -->
+<section class="bab">
+  <h2 id="I">I. Kalau ada masalah</h2>
+  <table class="rapat">
+    <tr><th style="width:42%">Yang terjadi</th><th>Lakukan</th></tr>
+    <tr><td>"Akun belum disetujui admin"</td><td>Kabari admin. Setelah disetujui, masuk lagi.</td></tr>
+    <tr><td>"Email atau kata sandi salah"</td><td>Periksa ketikan. Lupa kata sandi: minta admin menggantinya.</td></tr>
+    <tr><td>"Akun ini dinonaktifkan admin"</td><td>Hubungi admin.</td></tr>
+    <tr><td>"Akun ini sudah dipakai di 2 komputer"</td><td>Minta admin melepas komputer lama dari akunmu.</td></tr>
+    <tr><td>"Tidak bisa menghubungi server login"</td><td>Periksa internet komputer, lalu coba lagi.</td></tr>
+    <tr><td>"Server login tidak menjawab… mungkin sedang di-pause"</td><td>Hubungi admin (server akun perlu dinyalakan lagi).</td></tr>
+    <tr><td>"Versi ini sudah tidak boleh dipakai"</td><td>Tekan <b>Perbarui sekarang</b> di pita merah (bagian H).</td></tr>
+    <tr><td>"Pembaruan gagal — aplikasi tetap di versi lama"</td><td>Periksa internet, tekan <b>Coba lagi</b>. Bila tetap gagal, laporkan pesannya ke admin.</td></tr>
+    <tr><td>"Windows protected your PC" saat membuka Setup</td><td>Klik <b>More info</b>, lalu <b>Run anyway</b> (bagian C).</td></tr>
+    <tr><td>"Pustaka gagal dipasang"</td><td>Internet terputus saat pemasangan. Periksa internet, lalu klik ikon CKG Robot lagi.</td></tr>
+    <tr><td>"Python tidak ditemukan" (versi ZIP lama)</td><td>Pasang Setup dari website. Python sudah termasuk.</td></tr>
+    <tr><td>Ikon CKG Robot di Desktop terhapus</td><td>Buka dari Start Menu (ketik <b>CKG Robot</b>), atau pasang ulang Setup. Data tidak hilang.</td></tr>
+    <tr><td>Halaman aplikasi tidak terbuka sendiri</td><td>Buka browser, ketik <code>localhost:8765</code>.</td></tr>
+    <tr><td>"Aplikasi sudah berjalan dan memakai port 8765"</td><td>CKG Robot masih terbuka (jendela hitam di taskbar). Halamannya dibukakan lagi; pakai yang itu. Setelah pembaruan manual: tutup jendela lama, lalu klik ikon lagi.</td></tr>
+    <tr><td>"Terlalu banyak percobaan"</td><td>Salah kata sandi 5 kali. Tunggu 5 menit.</td></tr>
+    <tr><td>Diminta login portal terus</td><td>Jangan tutup jendela browser robot di tengah batch.</td></tr>
+    <tr><td>Berkas tidak muncul di "Berkas data peserta"</td><td>Pastikan berbentuk <code>.csv</code> dan ada di folder <code>data\</code> (Start Menu → <b>CKG Robot - folder data</b>), lalu muat ulang halaman.</td></tr>
+    <tr><td>Banyak <span class="tag t-kuning">tidak_ditemukan</span> (sekolah)</td><td>Cocokkan nama sekolah dan kelas dengan tulisan di portal, huruf demi huruf.</td></tr>
+    <tr><td>Banyak <span class="tag t-oranye">tidak_valid</span></td><td>Periksa NIK: 16 digit, tidak terpotong Excel, tanggal lahir cocok.</td></tr>
+    <tr><td>Batch berhenti sendiri</td><td>Normal setelah 3 gagal beruntun. Tutup browser, jalankan lagi dengan nomor data yang sama.</td></tr>
+  </table>
+  <div class="kotak tips"><b>Melapor masalah</b>
+  Sertakan nomor versi (kanan atas aplikasi), tangkapan layar dari folder <code>hasil\gagal\</code>, dan isi kartu
+  "Catatan proses". Dengan itu sebabnya bisa dilihat tanpa menebak.</div>
+
+  <h3>Yang TIDAK dilakukan CKG Robot</h3>
+  <ul>
+    <li>Tidak menyimpan atau membaca kata sandi portal. Login portal selalu dilakukan petugas.</li>
+    <li>Tidak mengirim data peserta ke server akun. Server akun hanya menyimpan data petugas (nama, email, puskesmas, no. HP).</li>
+    <li>Tidak bisa dikendalikan dari komputer lain. Halaman aplikasi hanya mengendalikan robot di komputer tempat
+      CKG Robot dibuka.</li>
+  </ul>
+</section>
+
+<!-- ============================================================ J -->
+<section class="bab">
+  <h2 id="J">J. Khusus admin: Kelola Petugas</h2>
+  <p>Akun berperan <b>admin</b> melihat tombol <b class="tombol">👥 Kelola Petugas</b> di kanan atas aplikasi.</p>
+  <figure><img src="gambar/z1-admin.png" style="max-width:104mm; margin:0 auto"><figcaption>Halaman Kelola Petugas</figcaption></figure>
+</section>
+
+<section>
+  <table class="rapat">
+    <tr><th style="width:32%">Keperluan</th><th>Caranya</th></tr>
+    <tr><td><b>Menyetujui pendaftar</b></td><td>Tab <b>Menunggu</b> → <b class="tombol">Setujui</b> (atau <b class="tombol">Tolak</b>).</td></tr>
+    <tr><td><b>Menghentikan akun</b></td><td><b class="tombol">Nonaktifkan</b>. Akun tidak bisa masuk dan tidak bisa memulai pekerjaan baru.</td></tr>
+    <tr><td><b>Membuatkan akun</b></td><td>Kartu <b>Buatkan akun petugas</b>. Akunnya langsung aktif; beri tahu email dan kata sandinya.</td></tr>
+    <tr><td><b>Petugas lupa kata sandi</b></td><td><b class="tombol">Lainnya</b> → <b class="tombol">Ganti kata sandi</b>.</td></tr>
+    <tr><td><b>Ganti laptop / batas komputer</b></td><td><b class="tombol">Lainnya</b> → <b class="tombol">Lepas</b> komputer lama, atau ubah <b>Batas komputer</b> untuk akun itu.</td></tr>
+    <tr><td><b>Menjadikan admin</b></td><td><b class="tombol">Lainnya</b> → <b class="tombol">Jadikan admin</b>.</td></tr>
+    <tr><td><b>Pengumuman untuk semua</b></td><td>Kartu <b>Pengaturan umum</b> → isi <b>Pengumuman</b>. Tampil di atas aplikasi semua petugas.</td></tr>
+  </table>
+
+  <h3>Menerbitkan versi baru</h3>
+  <ol>
+    <li>Di folder aplikasi admin, klik ganda <code>buat_paket.bat</code> dan jawab <b>t</b> (tanpa data peserta).
+      Nomor versinya dicap otomatis. ZIP dan <code>CKG-Robot-Setup-&lt;tanggal&gt;.exe</code> muncul di folder induk
+      (Setup dibuat bila Inno Setup 6 terpasang di komputer admin).</li>
+    <li>Kelola Petugas → <b>Terbitkan pembaruan</b> → pilih ZIP itu, tulis catatan perubahan →
+      <b class="tombol">Unggah &amp; terbitkan</b>.</li>
+    <li>Petugas melihat pita <b>Versi baru tersedia</b> saat masuk, saat menekan Periksa pembaruan, atau
+      otomatis dalam satu jam.</li>
+    <li>Untuk petugas baru: website → <b>Panel admin</b> → baris <b>Pemasang (Setup.exe)</b> → pilih Setup itu →
+      <b class="tombol">Unggah</b>. Tidak wajib tiap rilis: Setup lama langsung ditawari pembaruan setelah masuk.</li>
+    <li>Agar <b>wajib</b>: Pengaturan umum → isi <b>Versi minimal</b> dengan nomor versi itu. Isi ini hanya setelah
+      semua petugas memakai versi yang sudah punya tombol pembaruan.</li>
+  </ol>
+  <div class="kotak penting"><b>ZIP hanya lewat Kelola Petugas, Setup lewat Panel admin website</b>
+  Paket hanya diterbitkan dari Kelola Petugas, supaya nomor versi dan sidik keutuhannya tercatat. Paket yang
+  diunggah dengan cara lain ditolak tombol Perbarui di aplikasi petugas.</div>
+</section>
+
+</body>
+</html>

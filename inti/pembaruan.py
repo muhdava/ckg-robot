@@ -51,7 +51,7 @@ SIMPAN_CADANGAN = 3
 # python/ = Python bawaan Setup.exe (sedang dipakai menjalankan aplikasi ini);
 # pemasang/ = alat pembuat Setup, milik admin.
 LEWATI_AWALAN = ("data/", "hasil/", "mentah/", ".profil-browser", "cadangan-", "pembaruan/", "alat/",
-                 "supabase/", "__pycache__/", "python/", "pemasang/")
+                 "supabase/", "__pycache__/", "python/", "pemasang/", "panduan/", "uji/")
 LEWATI_NAMA = {"akun.dat", ".pintasan"}
 # Milik petugas: dipertahankan bila sudah ada, ditulis hanya bila belum ada.
 PERTAHANKAN = {"pengaturan.txt", "inti/login_online.json"}

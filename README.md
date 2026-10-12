@@ -98,6 +98,10 @@ inti/login_online.json  alamat & kunci PUBLISHABLE Supabase (aman publik)
 template/             template Excel data peserta
 supabase/             skema SQL & panduan menyalakan login online (tidak ikut ZIP)
 pemasang/             naskah Inno Setup + penyiap Python bawaan (tidak ikut ZIP)
+panduan/              sumber Panduan CKG Robot.pdf (python panduan/cetak.py) (tidak ikut ZIP)
+uji/                  Supabase tiruan untuk uji login & pembaruan (tidak ikut ZIP)
+CLAUDE.md             aturan & cara kerja untuk Claude Code (dua PC pengembang)
+requirements-dev.txt  pustaka tambahan pengembang
 alat/                 alat pengembang: cap_versi, buat_demo_web, buat_admin_web, buat_template_sekolah, buat_ikon
 ```
 
@@ -145,6 +149,11 @@ SQL Supabase dijalankan sekali, berurutan: `skema.sql` → `tambahan-website.sql
 ---
 
 ## Riwayat perubahan
+
+### 12 Okt 2026 — kerja dari dua PC (tanpa rilis)
+- `CLAUDE.md` di kedua repo: aturan data, alur rilis, jebakan lingkungan, langkah PC pengembang baru.
+- Sumber panduan PDF dipindah ke `panduan/` (sebelumnya hanya di folder sementara), server uji ke `uji/`,
+  `requirements-dev.txt`. Ketiganya tidak ikut ZIP maupun pembaruan.
 
 ### 2026.10.12.2131
 - **Panduan PDF** (19 halaman) diperbarui untuk Setup: langkah Setup bergambar, peringatan SmartScreen,

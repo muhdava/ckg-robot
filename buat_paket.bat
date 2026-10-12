@@ -46,7 +46,7 @@ echo  [1/4] Menyalin berkas...
 REM mentah\ = salinan berkas Excel yang pernah di-convert (nama & NIK orang
 REM sungguhan); alat\ = skrip perapian/laporan milik pembuat paket, ada yang
 REM memuat NIK di dalamnya. Keduanya bukan untuk petugas penerima.
-robocopy "%~dp0." "%STAGE%" /E /NFL /NDL /NJH /NJS /NP /XD ".profil-browser*" "hasil" "mentah" "alat" "supabase" "cadangan-tampilan*" "cadangan-versi" "pembaruan" "__pycache__" ".git" "pemasang" "python" /XF "*.pyc" "*.baru" "*.sementara" "buat_paket.bat" "akun.dat" ".pintasan" "unins000.*" >nul
+robocopy "%~dp0." "%STAGE%" /E /NFL /NDL /NJH /NJS /NP /XD ".profil-browser*" "hasil" "mentah" "alat" "supabase" "cadangan-tampilan*" "cadangan-versi" "pembaruan" "__pycache__" ".git" "pemasang" "python" "panduan" "uji" /XF "*.pyc" "*.baru" "*.sementara" "buat_paket.bat" "akun.dat" ".pintasan" "unins000.*" >nul
 if errorlevel 8 goto gagal
 if not exist "%STAGE%\mentah" mkdir "%STAGE%\mentah"
 if exist "%~dp0mentah\BACA INI.txt" copy /y "%~dp0mentah\BACA INI.txt" "%STAGE%\mentah\" >nul

@@ -37,6 +37,10 @@ pemasang/cache/
 .pintasan
 unins000.*
 
+# Berkas sementara cetak panduan
+panduan/_cetak.html
+panduan/_sementara.pdf
+
 # Python & sistem
 __pycache__/
 *.pyc

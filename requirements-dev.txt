@@ -1,0 +1,5 @@
+# Hanya untuk PENGEMBANG (bukan petugas): uji, alat, cetak panduan, pembuat Setup.
+-r requirements.txt
+pillow>=10           # alat/buat_ikon.py
+pymupdf>=1.24        # panduan/cetak.py
+pglast>=7            # cek sintaks SQL supabase/*.sql tanpa Postgres
