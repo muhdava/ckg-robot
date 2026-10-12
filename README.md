@@ -58,6 +58,9 @@ halaman web lokal (`localhost:8765`).
 - **Pembaruan dari dalam aplikasi:** admin *Terbitkan pembaruan* → petugas melihat pita
   **Versi baru tersedia** → *Perbarui sekarang*: unduh → cek SHA-256 → cadangkan → pasang → mulai ulang.
   Tombol **Periksa pembaruan** + pemeriksaan otomatis tiap jam. Data & pengaturan tidak disentuh.
+- **Pengumuman admin sampai saat robot bekerja:** aplikasi menanyakan pengumuman tiap 2 menit (server paling
+  sering sekali per 90 detik). Isi baru → kotak *Pengumuman baru dari admin*, notifikasi Windows, judul tab
+  berkedip; sekali per isi. Akun yang dinonaktifkan di tengah batch diberi tahu (batch berjalan tetap selesai).
 - **Setup.exe (Inno Setup) dengan Python bawaan:** petugas baru tidak perlu memasang Python. Dipasang per
   pengguna di `%LOCALAPPDATA%\CKG Robot` (tanpa izin administrator), ikon CKG Robot di Desktop & Start Menu,
   pintasan "folder data", uninstall dari Control Panel (data, hasil, pengaturan ditinggal). Pustaka diunduh
@@ -149,6 +152,14 @@ SQL Supabase dijalankan sekali, berurutan: `skema.sql` → `tambahan-website.sql
 ---
 
 ## Riwayat perubahan
+
+### 2026.10.12.2216
+- **Pengumuman admin langsung sampai**, juga selagi robot bekerja: `/api/kabar` ditanya halaman tiap 2 menit,
+  kotak *Pengumuman baru dari admin* + notifikasi Windows + judul tab berkedip, sekali per isi (diingat per
+  browser). Pita pengumuman ikut berganti/hilang. Tanpa perubahan SQL.
+- Akun dinonaktifkan admin di tengah batch → pita & kotak merah; batch berjalan tetap selesai, batch baru ditolak.
+- Izin notifikasi diminta saat petugas menekan *Buka browser & mulai*.
+- Demo website, petunjuk Kelola Petugas, dan Panduan PDF disesuaikan.
 
 ### 12 Okt 2026 — kerja dari dua PC (tanpa rilis)
 - `CLAUDE.md` di kedua repo: aturan data, alur rilis, jebakan lingkungan, langkah PC pengembang baru.

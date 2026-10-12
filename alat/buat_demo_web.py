@@ -208,6 +208,7 @@ window.fetch = async (alamat, pilihan = {}) => {
     case '/api/konversi': return konversi(d);
     case '/api/export': return tanpaBerkas('Excel berisi lembar Hasil & Rekap');
     case '/api/laporan': return tanpaBerkas('laporan Excel berisi data asli + kolom hasil');
+    case '/api/kabar': return J({ok: true, online: true, pengumuman: '', akun: ''});
     case '/api/periksa-pembaruan': await jeda(700); return J({ok: true, pembaruan: null, versi: 'demo'});
     case '/api/fokus': return J({ok: false, pesan: 'Di demo tidak ada jendela browser.'});
     default: return J({ok: true});

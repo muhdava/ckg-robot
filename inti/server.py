@@ -100,6 +100,8 @@ def _buat_sesi(nama: str, online: dict | None = None) -> str:
 
 
 _kunci_online = threading.Lock()
+# /api/kabar: paling sering sekali per 90 detik ke Supabase, berapa pun tab yang terbuka.
+KABAR_JEDA = 90
 
 
 def _izin_online(sesi: dict) -> dict:
@@ -1292,6 +1294,29 @@ class Penangan(BaseHTTPRequestHandler):
                 self._json({"ok": False, "pesan": izin.get("pesan") or "Tidak bisa memeriksa pembaruan."})
                 return
             self._json({"ok": True, "pembaruan": _pembaruan_tersedia(sesi), "versi": config.VERSI})
+            return
+
+        if jalan == "/api/kabar":
+            # Halaman bertanya tiap 2 menit - JUGA selama robot bekerja - supaya
+            # pengumuman admin sampai tanpa keluar-masuk. Hanya membaca izin;
+            # pekerjaan yang sedang berjalan tidak pernah dihentikan dari sini.
+            sesi = self._sesi()
+            on = (sesi or {}).get("online")
+            if not on:
+                self._json({"ok": True, "online": False})
+                return
+            sekarang = time.time()
+            if sekarang - on.get("kabar_waktu", 0) >= KABAR_JEDA:      # beberapa tab -> satu panggilan
+                on["kabar_waktu"] = sekarang
+                izin = _izin_online(sesi)
+                alasan = "" if izin.get("ok") else izin.get("alasan", "")
+                # Gangguan jaringan/server bukan alasan memberi tahu petugas apa pun.
+                if alasan in ("nonaktif", "akun_tidak_ada", "menunggu"):
+                    on["kabar_akun"] = izin.get("pesan") or "Akun ini tidak lagi aktif."
+                elif izin.get("ok"):
+                    on["kabar_akun"] = ""
+            self._json({"ok": True, "online": True, "pengumuman": on.get("pengumuman", ""),
+                        "akun": on.get("kabar_akun", "")})
             return
 
         if jalan == "/api/perbarui":

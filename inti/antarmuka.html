@@ -58,6 +58,17 @@
   .pengumuman{max-width:1220px; margin:14px auto 0; padding:10px 16px; border-radius:10px; font-size:13.5px;
               background:#fff6e5; border:1px solid #f3d59b; color:#5c3a05; white-space:pre-line}
   .wadah > .pengumuman{margin:0; grid-column:1 / -1}
+  .pengumuman.akun{background:var(--merah-muda); border-color:#f3c1bb; color:var(--merah)}
+  /* Kotak "Pengumuman baru" - muncul sekali per isi baru, juga saat robot bekerja. */
+  .layar-kabar{position:fixed; inset:0; z-index:50; background:rgba(15,23,42,.45); display:grid;
+               place-items:center; padding:16px}
+  .layar-kabar.sembunyi{display:none}
+  .kotak-kabar{background:#fff; border-radius:14px; max-width:520px; width:100%; padding:20px 22px;
+               box-shadow:0 20px 50px -12px rgba(15,23,42,.45); border-top:5px solid #e0a020}
+  .kotak-kabar.akun{border-top-color:var(--merah)}
+  .kotak-kabar h3{margin:0 0 10px; font-size:17px}
+  .kotak-kabar p{margin:0 0 16px; white-space:pre-line; font-size:14.5px; line-height:1.55}
+  .kotak-kabar small{display:block; color:var(--samar); margin:-8px 0 14px}
   .pita-perbarui{grid-column:1 / -1; display:flex; align-items:center; gap:14px; flex-wrap:wrap; padding:12px 16px;
                  border-radius:10px; background:#eef6ff; border:1px solid #bfd8f6; color:#173a63; font-size:13.5px}
   .pita-perbarui.wajib{background:#fdeeec; border-color:#f4c0ba; color:#7a1a12}
@@ -356,6 +367,15 @@
   <button class="utama" type="button" id="tombol-perbarui">Perbarui sekarang</button>
 </div>
 <div class="pengumuman sembunyi" id="pengumuman" role="status"></div>
+<div class="pengumuman akun sembunyi" id="kabar-akun" role="alert"></div>
+<div class="layar-kabar sembunyi" id="layar-kabar" role="dialog" aria-modal="true" aria-labelledby="judul-kabar">
+  <div class="kotak-kabar" id="kotak-kabar">
+    <h3 id="judul-kabar">📢 Pengumuman baru dari admin</h3>
+    <p id="isi-kabar"></p>
+    <small id="ket-kabar">Robot tetap bekerja - kotak ini tidak menghentikan apa pun.</small>
+    <button class="utama" type="button" id="tutup-kabar">Mengerti</button>
+  </div>
+</div>
 <main>
   <!-- Konversi berkas mentah. Sengaja TERTUTUP: hanya dipakai sesekali. -->
   <details class="kartu lipat" id="kartu-konversi">
@@ -779,8 +799,8 @@ async function awal(){
   $('inisial').textContent = (d.pengguna || '·').trim().charAt(0) || '·';
   // Login online: tombol admin dan pengumuman dari server.
   $('tombol-admin').classList.toggle('sembunyi', d.peran !== 'admin');
-  $('pengumuman').textContent = d.pengumuman ? '📢 ' + d.pengumuman : '';
-  $('pengumuman').classList.toggle('sembunyi', !d.pengumuman);
+  tampilPengumuman(d.pengumuman || '');
+  if (d.online && !jamKabar) jamKabar = setInterval(periksaKabar, 2 * 60 * 1000);
   gambarPembaruan(d.pembaruan);
   $('versi-app').textContent = 'v' + (d.versi || '?');
   $('tombol-periksa').classList.toggle('sembunyi', !d.online);
@@ -806,6 +826,96 @@ async function awal(){
       + 'Ubah "mode uji = tidak" di pengaturan.txt bila ingin mendaftarkan sungguhan.';
     $('kabar-mode').classList.remove('sembunyi');
   }
+}
+
+// ------------------------------------------------------------- pengumuman
+// Ditanyakan ke server tiap 2 menit - JUGA saat robot bekerja - supaya
+// pengumuman admin sampai tanpa keluar-masuk. Saat robot jalan petugas
+// biasanya melihat jendela browser robot, jadi pengumuman BARU juga muncul
+// sebagai notifikasi Windows dan judul tab yang berkedip. Kotak hanya muncul
+// sekali per isi (yang sudah "Mengerti" diingat di browser ini).
+let jamKabar = null, kedip = null;
+const JUDUL_ASLI = document.title;
+const DIBACA = 'ckg-pengumuman-dibaca';
+
+function sudahDibaca(teks){
+  try { return localStorage.getItem(DIBACA) === teks; } catch (e) { return false; }
+}
+function tandaiDibaca(teks){
+  try { localStorage.setItem(DIBACA, teks); } catch (e) {}
+}
+
+function kedipkanJudul(teks){
+  clearInterval(kedip); kedip = null;
+  document.title = JUDUL_ASLI;
+  if (!teks) return;
+  let nyala = false;
+  kedip = setInterval(() => { nyala = !nyala; document.title = nyala ? teks : JUDUL_ASLI; }, 1200);
+}
+
+function beritahuWindows(judul, isi){
+  try {
+    if (!('Notification' in window) || Notification.permission !== 'granted') return;
+    const n = new Notification(judul, {body: isi.slice(0, 240), tag: 'ckg-kabar', requireInteraction: true});
+    n.onclick = () => { window.focus(); n.close(); };
+  } catch (e) {}
+}
+
+// Dipanggil saat petugas menekan "Buka browser & mulai" (izin notifikasi
+// harus diminta dari klik petugas, bukan muncul tiba-tiba).
+function mintaIzinNotifikasi(){
+  try {
+    if ('Notification' in window && Notification.permission === 'default') Notification.requestPermission();
+  } catch (e) {}
+}
+
+function bukaKotakKabar(judul, isi, akun){
+  $('judul-kabar').textContent = judul;
+  $('isi-kabar').textContent = isi;
+  $('kotak-kabar').classList.toggle('akun', !!akun);
+  $('ket-kabar').textContent = akun
+    ? 'Pekerjaan yang sedang berjalan tetap diselesaikan, tetapi pekerjaan baru tidak bisa dimulai.'
+    : 'Robot tetap bekerja - kotak ini tidak menghentikan apa pun.';
+  $('layar-kabar').classList.remove('sembunyi');
+  $('layar-kabar').dataset.isi = isi;
+  kedipkanJudul(akun ? '⚠ Akun CKG Robot' : '📢 Pengumuman');
+  beritahuWindows(judul, isi);
+}
+$('tutup-kabar').onclick = () => {
+  tandaiDibaca($('layar-kabar').dataset.isi || '');
+  $('layar-kabar').classList.add('sembunyi');
+  kedipkanJudul('');
+};
+
+function tampilPengumuman(teks){
+  $('pengumuman').textContent = teks ? '📢 ' + teks : '';
+  $('pengumuman').classList.toggle('sembunyi', !teks);
+  if (!teks){
+    if ($('layar-kabar').dataset.isi && !$('kotak-kabar').classList.contains('akun')){
+      $('layar-kabar').classList.add('sembunyi'); kedipkanJudul('');
+    }
+    return;
+  }
+  if (!sudahDibaca(teks)) bukaKotakKabar('📢 Pengumuman baru dari admin', teks, false);
+}
+
+let akunTerakhir = '';
+async function periksaKabar(){
+  try {
+    // fetch biasa, bukan panggil(): sesi yang habis di tengah batch tidak boleh
+    // melempar halaman ke layar masuk selagi robot masih bekerja.
+    const r = await fetch('/api/kabar', {method:'POST', headers:{'Content-Type':'application/json'}, body:'{}'});
+    if (!r.ok) return;
+    const d = await r.json();
+    if (!d.ok || !d.online) return;
+    tampilPengumuman(d.pengumuman || '');
+    const akun = d.akun || '';
+    $('kabar-akun').textContent = akun ? '⚠ ' + akun + ' Pekerjaan yang sedang berjalan tetap diselesaikan; '
+                                         + 'pekerjaan baru tidak bisa dimulai.' : '';
+    $('kabar-akun').classList.toggle('sembunyi', !akun);
+    if (akun && akun !== akunTerakhir) bukaKotakKabar('⚠ Akun CKG Robot', akun, true);
+    akunTerakhir = akun;
+  } catch (e) {}       // server login tak terjangkau: diam, robot tidak terganggu
 }
 
 // ------------------------------------------------------------- pembaruan
@@ -936,7 +1046,7 @@ async function mulai(paksa){
   $('tombol-paksa').classList.add('sembunyi');
   pantau();
 }
-$('tombol-mulai').onclick = () => mulai(false);
+$('tombol-mulai').onclick = () => { mintaIzinNotifikasi(); mulai(false); };
 $('tombol-paksa').onclick = () => mulai(true);
 
 $('tombol-login').onclick = async () => {
