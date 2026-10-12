@@ -134,7 +134,7 @@ SQL Supabase dijalankan sekali, berurutan: `skema.sql` → `tambahan-website.sql
 
 ## Riwayat perubahan
 
-### 2026.10.12 (rilis berikutnya)
+### 2026.10.12.1458
 - Nama & NIK peserta sungguhan di komentar kode **disamarkan** sebelum repo diterbitkan
   (hanya komentar/dokumentasi, logika tidak berubah).
 - Repo GitHub `ckg-robot` dibuat; README berisi fitur & riwayat ini.
