@@ -1,0 +1,1311 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>CKG Robot</title>
+<style>
+  /* Tampilan 3 Okt 2026: terang, rapi, dan menjelaskan alurnya sendiri.
+     Cadangan tampilan sebelumnya: ..\cadangan-tampilan-20261003\ */
+  :root{
+    --latar:#f3f5f8; --kartu:#ffffff; --garis:#e2e7ee; --garis-kuat:#cfd6e0;
+    --teks:#18222e; --redup:#5d6878; --samar:#8a94a3;
+    --utama:#0f766e; --utama-tua:#0b5e58; --utama-muda:#e7f4f2; --utama-garis:#a7d8d1;
+    --biru:#1d4ed8;
+    --hijau:#15803d; --hijau-muda:#e8f6ed; --hijau-garis:#b5e2c4;
+    --kuning:#a15c07; --kuning-muda:#fff6e5; --kuning-garis:#f3d59b;
+    --merah:#b42318; --merah-muda:#fdeeec; --merah-garis:#f4c0ba;
+    --ungu:#6d28d9; --ungu-muda:#f1ebfe; --ungu-garis:#d6c5fb;
+    --abu-muda:#eef1f5;
+    --bayang:0 1px 2px rgba(16,24,40,.05), 0 1px 3px rgba(16,24,40,.06);
+    --radius:12px;
+  }
+  *{box-sizing:border-box}
+  html,body{min-height:100%}
+  body{
+    margin:0; background:var(--latar); color:var(--teks);
+    font:14.5px/1.55 "Segoe UI", system-ui, -apple-system, Roboto, sans-serif;
+    -webkit-font-smoothing:antialiased;
+  }
+  code{font:12.5px Consolas, ui-monospace, monospace; background:var(--abu-muda);
+       border:1px solid var(--garis); padding:0 5px; border-radius:5px; color:var(--teks)}
+
+  /* ---------------------------------------------------------------- kepala */
+  header{background:#fff; border-bottom:1px solid var(--garis)}
+  .atas-tetap{position:sticky; top:0; z-index:5}
+  .kop{max-width:1220px; margin:0 auto; padding:12px 24px; display:flex; align-items:center; gap:14px}
+  .lambang{width:40px; height:40px; border-radius:10px; flex:none; background:var(--utama);
+           display:grid; place-items:center}
+  .lambang svg{width:22px; height:22px}
+  .kop h1{margin:0; font-size:17px; font-weight:700; letter-spacing:-.01em}
+  .kop p{margin:0; font-size:12.5px; color:var(--redup)}
+  .kanan{margin-left:auto; display:flex; align-items:center; gap:10px}
+  .tombol-panduan{display:inline-flex; align-items:center; gap:6px; font-size:13px; font-weight:600;
+                  color:var(--utama); background:#fff; border:1px solid var(--utama-garis); padding:6px 12px;
+                  border-radius:8px; text-decoration:none; white-space:nowrap; transition:background .15s}
+  .tombol-panduan:hover{background:var(--utama-muda)}
+  .versi-app{display:inline-flex; align-items:center; gap:6px; font-size:12px; color:var(--redup); white-space:nowrap}
+  .versi-app code{font:600 11.5px Consolas, monospace; background:var(--abu-muda); border:1px solid var(--garis);
+                  padding:2px 7px; border-radius:6px; color:var(--teks)}
+  .versi-app button{background:none; border:none; padding:2px 4px; font:inherit; font-size:12px; font-weight:600;
+                    color:var(--utama); cursor:pointer; border-radius:6px}
+  .versi-app button:hover:not(:disabled){background:var(--utama-muda)}
+  .versi-app button:disabled{color:var(--samar); cursor:wait}
+  .versi-app button.ok{color:var(--hijau)}
+  .versi-app button.gagal{color:var(--merah)}
+  #pengguna{white-space:nowrap}
+  .pengumuman{max-width:1220px; margin:14px auto 0; padding:10px 16px; border-radius:10px; font-size:13.5px;
+              background:#fff6e5; border:1px solid #f3d59b; color:#5c3a05; white-space:pre-line}
+  .wadah > .pengumuman{margin:0; grid-column:1 / -1}
+  .pita-perbarui{grid-column:1 / -1; display:flex; align-items:center; gap:14px; flex-wrap:wrap; padding:12px 16px;
+                 border-radius:10px; background:#eef6ff; border:1px solid #bfd8f6; color:#173a63; font-size:13.5px}
+  .pita-perbarui.wajib{background:#fdeeec; border-color:#f4c0ba; color:#7a1a12}
+  .pita-perbarui .isi{flex:1; min-width:240px}
+  .pita-perbarui .isi b{display:block; font-size:14px}
+  .pita-perbarui .isi span{white-space:pre-line}
+  .pita-perbarui .bilah-perbarui{height:6px; border-radius:99px; background:rgba(0,0,0,.08); margin-top:8px; overflow:hidden}
+  .pita-perbarui .bilah-perbarui i{display:block; height:100%; width:0; background:var(--utama); transition:width .4s}
+  .lampu{display:flex; align-items:center; gap:8px; font-size:12.5px; font-weight:600; color:var(--redup);
+         background:var(--abu-muda); border:1px solid var(--garis); padding:5px 12px; border-radius:999px;
+         white-space:nowrap}
+  .titik{width:8px; height:8px; border-radius:50%; background:var(--samar); flex:none}
+  .lampu[data-hidup="1"]{color:var(--hijau); background:var(--hijau-muda); border-color:var(--hijau-garis)}
+  .lampu[data-hidup="1"] .titik{background:var(--hijau); animation:denyut 1.6s ease-in-out infinite}
+  @keyframes denyut{50%{opacity:.3}}
+  .pengguna{display:flex; align-items:center; gap:9px; font-size:13px; padding-left:10px;
+            border-left:1px solid var(--garis)}
+  .inisial{width:30px; height:30px; border-radius:50%; background:var(--utama-muda); color:var(--utama);
+           display:grid; place-items:center; font-weight:700; font-size:13px; text-transform:uppercase}
+  #pengguna{font-weight:600}
+  button.tautan{background:none; border:none; padding:0; font:inherit; font-size:12.5px; color:var(--biru);
+                cursor:pointer}
+  button.tautan:hover{text-decoration:underline}
+
+  /* ------------------------------------------------------- penunjuk langkah */
+  .langkah-bar{background:#fff; border-bottom:1px solid var(--garis)}
+  .langkah{max-width:1220px; margin:0 auto; padding:10px 24px; display:flex; gap:6px; list-style:none}
+  .langkah li{flex:1; display:flex; align-items:center; gap:9px; font-size:13px; color:var(--samar);
+              padding:6px 10px; border-radius:8px; min-width:0}
+  .langkah li .bulat{width:24px; height:24px; border-radius:50%; flex:none; display:grid; place-items:center;
+                     font-size:12px; font-weight:700; border:1.5px solid var(--garis-kuat); background:#fff}
+  .langkah li b{font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
+  .langkah li.aktif{color:var(--utama); background:var(--utama-muda)}
+  .langkah li.aktif .bulat{background:var(--utama); border-color:var(--utama); color:#fff}
+  .langkah li.lewat{color:var(--teks)}
+  .langkah li.lewat .bulat{background:var(--hijau-muda); border-color:var(--hijau-garis); color:var(--hijau)}
+  .langkah li + li::before{content:""; width:18px; height:1.5px; background:var(--garis-kuat); flex:none;
+                            margin-left:-12px}
+
+  /* ------------------------------------------------------------- tata letak */
+  .wadah{max-width:1220px; margin:22px auto 40px; padding:0 24px;
+         display:grid; grid-template-columns:minmax(0,1fr) 300px; gap:20px; align-items:start}
+  main{display:flex; flex-direction:column; gap:18px; min-width:0}
+  aside{position:sticky; top:140px; display:flex; flex-direction:column; gap:14px}
+
+  .kartu{background:var(--kartu); border:1px solid var(--garis); border-radius:var(--radius);
+         box-shadow:var(--bayang); padding:20px 22px}
+  .kepala-kartu{display:flex; align-items:flex-start; gap:12px; margin:0 0 16px}
+  .kepala-kartu .no{width:28px; height:28px; border-radius:8px; flex:none; display:grid; place-items:center;
+                    font-size:13px; font-weight:700; color:var(--utama); background:var(--utama-muda);
+                    border:1px solid var(--utama-garis)}
+  .kepala-kartu h2{margin:0; font-size:16px; font-weight:700; letter-spacing:-.005em}
+  .kepala-kartu .ket{margin:1px 0 0; font-size:13px; color:var(--redup)}
+  .kepala-kartu .ujung{margin-left:auto; flex:none}
+
+  /* kartu lipat: siapkan data */
+  .kartu.lipat{padding:0}
+  .kartu.lipat > summary{list-style:none; cursor:pointer; padding:16px 22px; display:flex; align-items:center; gap:12px}
+  .kartu.lipat > summary::-webkit-details-marker{display:none}
+  .kartu.lipat > summary .kepala-kartu{margin:0; flex:1}
+  .kartu.lipat > summary .panah{color:var(--samar); transition:transform .2s; font-size:13px}
+  .kartu.lipat[open] > summary .panah{transform:rotate(90deg)}
+  .kartu.lipat[open] > summary{border-bottom:1px solid var(--garis)}
+  .kartu.lipat .isi-lipat{padding:16px 22px 20px}
+  .lencana{display:inline-block; font-size:11px; font-weight:700; letter-spacing:.03em; padding:2px 8px;
+           border-radius:999px; background:var(--abu-muda); color:var(--redup); border:1px solid var(--garis);
+           vertical-align:2px; margin-left:6px}
+  .lencana.saran{background:var(--utama-muda); color:var(--utama); border-color:var(--utama-garis)}
+
+  .jatuhan{padding:22px 18px; border-radius:10px; text-align:center; border:1.5px dashed var(--garis-kuat);
+           background:#fafbfc; cursor:pointer; color:var(--redup); font-size:13.5px;
+           transition:border-color .15s, background .15s}
+  .jatuhan:hover{border-color:var(--utama); background:var(--utama-muda)}
+  .jatuhan.siap{border-color:var(--utama); background:var(--utama-muda); border-style:solid}
+  .jatuhan b{color:var(--utama)}
+  .jatuhan .ikon{font-size:22px; display:block; margin-bottom:4px}
+  .jatuhan span#nama-berkas{display:block; margin-top:6px; font:12.5px Consolas, monospace; color:var(--teks)}
+
+  .lapor{margin-top:16px; font-size:13.5px}
+  .lapor .judul{font-weight:700; margin-bottom:8px}
+  .lapor p{margin:5px 0; padding:8px 12px; border-radius:8px; border:1px solid var(--garis); background:#fafbfc}
+  .lapor p.awas{border-color:var(--kuning-garis); background:var(--kuning-muda)}
+  .lapor p.stop{border-color:var(--merah-garis); background:var(--merah-muda)}
+  .lapor p.oke{border-color:var(--hijau-garis); background:var(--hijau-muda)}
+  .lapor .kecil{font-size:12.5px; color:var(--redup)}
+
+  /* ---------------------------------------------------------------- isian */
+  label{display:block; font-size:13px; font-weight:600; color:var(--teks); margin:0 0 6px}
+  label .opsi{font-weight:400; color:var(--samar)}
+  select,input[type=text]{
+    width:100%; padding:9px 12px; font:inherit; font-size:14px; color:var(--teks); background:#fff;
+    border:1px solid var(--garis-kuat); border-radius:8px; outline:none; appearance:none;
+    transition:border-color .15s, box-shadow .15s;
+  }
+  select{background-image:linear-gradient(45deg,transparent 50%,var(--redup) 50%),
+                          linear-gradient(135deg,var(--redup) 50%,transparent 50%);
+         background-position:calc(100% - 17px) 52%, calc(100% - 12px) 52%;
+         background-size:5px 5px,5px 5px; background-repeat:no-repeat; padding-right:34px}
+  select:hover,input[type=text]:hover{border-color:#b3bcc8}
+  select:focus,input[type=text]:focus{border-color:var(--utama); box-shadow:0 0 0 3px rgba(15,118,110,.15)}
+  input[type=checkbox]{accent-color:var(--utama)}
+  .baris{display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); gap:14px}
+  .baris > div{display:flex; flex-direction:column; justify-content:flex-end}
+  .bantu{font-size:12.5px; color:var(--redup); margin:6px 0 0}
+  .petunjuk{font-size:12.5px; color:var(--redup); margin:10px 0 0}
+  .petunjuk b{color:var(--teks)}
+  .pemisah{height:1px; background:var(--garis); margin:18px 0}
+  .subjudul{font-size:13px; font-weight:700; margin:0 0 8px; color:var(--teks)}
+
+  /* pilihan alur berupa kartu */
+  .pilih-alur{display:grid; grid-template-columns:repeat(auto-fill,minmax(250px,1fr)); gap:10px}
+  .alur{position:relative; display:block; margin:0; padding:12px 14px 12px 40px; border:1px solid var(--garis-kuat);
+        border-radius:10px; cursor:pointer; background:#fff; font-weight:400;
+        transition:border-color .15s, background .15s, box-shadow .15s}
+  .alur:hover{border-color:#9fb0c2}
+  .alur input{position:absolute; left:14px; top:15px; margin:0; accent-color:var(--utama)}
+  .alur .nama{display:block; font-weight:700; font-size:13.5px; color:var(--teks)}
+  .alur .uraian{display:block; font-size:12.5px; color:var(--redup); margin-top:2px; line-height:1.45}
+  .alur:has(input:checked){border-color:var(--utama); background:var(--utama-muda);
+                           box-shadow:0 0 0 1px var(--utama) inset}
+  .jelas{margin:10px 0 0; padding:10px 12px; border-radius:8px; font-size:13px; color:var(--teks);
+         background:#f7f9fb; border:1px solid var(--garis)}
+  .jelas:empty{display:none}
+
+  /* ---------------------------------------------------------------- tombol */
+  button{font:inherit; font-weight:600; padding:9px 16px; border-radius:8px; border:1px solid transparent;
+         cursor:pointer; transition:background .15s, border-color .15s, box-shadow .15s}
+  .utama{background:var(--utama); color:#fff; border-color:var(--utama)}
+  .utama:hover:not(:disabled){background:var(--utama-tua)}
+  .utama:disabled{background:#c9d1da; border-color:#c9d1da; color:#fff; cursor:not-allowed}
+  .kedua{background:#fff; color:var(--teks); border-color:var(--garis-kuat)}
+  .kedua:hover:not(:disabled){background:var(--abu-muda)}
+  .kedua:disabled{color:var(--samar); cursor:not-allowed}
+  button.besar{padding:12px 22px; font-size:15px}
+  button.kecil{padding:6px 12px; font-size:13px; border-radius:7px}
+  .aksi{display:flex; gap:10px; flex-wrap:wrap; align-items:center; margin-top:18px}
+
+  .kabar{margin:14px 0 0; padding:11px 14px; border-radius:8px; font-size:13.5px; border:1px solid var(--garis);
+         background:#f7f9fb; display:flex; gap:10px; align-items:flex-start}
+  .kabar::before{content:"i"; flex:none; width:18px; height:18px; border-radius:50%; display:grid; place-items:center;
+                 font:700 11px/1 Georgia, serif; background:var(--redup); color:#fff; margin-top:1px}
+  .kabar.tunggu{border-color:var(--kuning-garis); background:var(--kuning-muda); color:#5c3a05}
+  .kabar.tunggu::before{content:"!"; background:var(--kuning); font-family:inherit}
+  .kabar.gagal{border-color:var(--merah-garis); background:var(--merah-muda); color:#7a1a12}
+  .kabar.gagal::before{content:"✕"; background:var(--merah); font-family:inherit}
+  .kabar.selesai{border-color:var(--hijau-garis); background:var(--hijau-muda); color:#0d4d28}
+  .kabar.selesai::before{content:"✓"; background:var(--hijau); font-family:inherit}
+
+  /* --------------------------------------------------------------- kemajuan */
+  .hitung{display:flex; align-items:baseline; gap:10px; margin:0 0 10px}
+  .hitung .besar{font-size:30px; font-weight:700; letter-spacing:-.02em; font-variant-numeric:tabular-nums}
+  .hitung .kecil{font-size:13px; color:var(--redup)}
+  .hitung .jam{margin-left:auto; font-size:13px; color:var(--redup); font-variant-numeric:tabular-nums}
+  .hitung .jam[data-jalan="1"]{color:var(--utama); font-weight:600}
+  .baris-bar{display:flex; align-items:center; gap:12px}
+  .baris-bar .bar{flex:1}
+  .persen{font-size:13px; font-weight:700; min-width:44px; text-align:right; font-variant-numeric:tabular-nums}
+  .bar{height:10px; border-radius:999px; overflow:hidden; position:relative; background:var(--abu-muda);
+       border:1px solid var(--garis)}
+  .bar i{display:block; height:100%; width:0; border-radius:999px; background:var(--utama); transition:width .5s ease}
+  .bar[data-jalan="1"] i{background-image:linear-gradient(90deg,rgba(255,255,255,0) 0,rgba(255,255,255,.35) 50%,rgba(255,255,255,0) 100%);
+                         background-size:200px 100%; background-repeat:no-repeat; animation:kilas 1.6s linear infinite}
+  @keyframes kilas{from{background-position:-200px 0}to{background-position:calc(100% + 200px) 0}}
+
+  .pekerja{display:flex; align-items:center; gap:12px; flex-wrap:wrap; padding:10px 12px; margin-top:10px;
+           border-radius:8px; background:#fafbfc; border:1px solid var(--garis)}
+  .pekerja .nomor{font-size:12px; font-weight:700; color:var(--utama); background:var(--utama-muda);
+                  border:1px solid var(--utama-garis); border-radius:6px; padding:2px 8px; cursor:pointer}
+  .pekerja .nomor:hover{background:#d3ece8}
+  .pekerja .nomor:disabled{opacity:.55; cursor:default}
+  .pekerja .angka{font-variant-numeric:tabular-nums; font-size:13px; flex:none; width:7ch; text-align:right}
+  .pekerja .keadaan{font-size:12.5px; color:var(--redup); flex:none; width:15ch; white-space:nowrap;
+                    overflow:hidden; text-overflow:ellipsis}
+  .pekerja .slot-aksi{flex:none; width:104px; display:flex; justify-content:flex-end}
+  .pekerja .bar{flex:1 1 140px; min-width:110px; height:8px}
+  .pekerja .akun{flex:none; width:15ch; font-size:12.5px; font-weight:600; overflow:hidden;
+                 text-overflow:ellipsis; white-space:nowrap}
+  .pekerja .akun.kosong{color:var(--samar); font-weight:400}
+  .pekerja button{margin-left:auto}
+
+  /* ------------------------------------------------------------------ hasil */
+  .gulung{overflow-x:auto; border:1px solid var(--garis); border-radius:8px}
+  table{width:100%; border-collapse:collapse; font-size:13.5px; min-width:520px}
+  th,td{text-align:left; padding:9px 12px; border-bottom:1px solid var(--garis); vertical-align:top}
+  th{font-size:12px; font-weight:700; color:var(--redup); background:#f7f9fb}
+  tbody tr:last-child td{border-bottom:none}
+  tbody tr:hover{background:#fafbfc}
+  td.nomor,td.tiket{font:12.5px Consolas, monospace; color:var(--redup)}
+  td.nik{font:12.5px Consolas, monospace; white-space:nowrap}
+  .tag{display:inline-block; padding:2px 9px; border-radius:999px; font-size:12px; font-weight:600;
+       white-space:nowrap; border:1px solid}
+  .t-tuntas{color:var(--hijau); background:var(--hijau-muda); border-color:var(--hijau-garis)}
+  .t-sudah{color:#3d4a5a; background:var(--abu-muda); border-color:var(--garis-kuat)}
+  .t-beda{color:var(--ungu); background:var(--ungu-muda); border-color:var(--ungu-garis)}
+  .t-tolak{color:var(--kuning); background:var(--kuning-muda); border-color:var(--kuning-garis)}
+  .t-gagal{color:var(--merah); background:var(--merah-muda); border-color:var(--merah-garis)}
+
+  .rekap{display:flex; gap:8px; flex-wrap:wrap; margin:0 0 4px}
+  .rekap .tag{display:inline-flex; align-items:center; gap:8px; padding:5px 8px 5px 12px; font-size:12.5px;
+              cursor:pointer; font-family:inherit}
+  .rekap .tag:hover{filter:brightness(.96)}
+  .rekap .tag::after{content:"⬇"; font-size:10px; opacity:.6}
+  .rekap .tag b{font-variant-numeric:tabular-nums; background:#fff; border-radius:999px; padding:0 8px;
+                border:1px solid currentColor}
+  .rekap .jumlah-semua{margin-left:auto; align-self:center; font-size:13px; color:var(--redup)}
+
+  .navigasi{display:flex; align-items:center; gap:12px; flex-wrap:wrap; margin-top:12px}
+  .navigasi #nav-hal{font-size:13px; color:var(--redup); font-variant-numeric:tabular-nums}
+  .navigasi #nav-info{margin-left:auto}
+  label.sebaris{display:inline-flex; align-items:center; gap:7px; margin:0; font-size:13px; font-weight:400;
+                color:var(--redup)}
+  label.sebaris select{width:auto; padding:5px 28px 5px 10px; font-size:13px;
+                       background-position:calc(100% - 14px) 52%, calc(100% - 9px) 52%}
+
+  pre{margin:0; padding:12px 14px; border-radius:8px; max-height:300px; overflow:auto;
+      font:12.5px/1.6 Consolas, ui-monospace, monospace; color:#d6dee8; background:#111821;
+      white-space:pre-wrap}
+
+  /* ------------------------------------------------------------ panel samping */
+  .samping{background:#fff; border:1px solid var(--garis); border-radius:var(--radius); box-shadow:var(--bayang);
+           padding:16px 18px; font-size:13px}
+  .samping h3{margin:0 0 10px; font-size:13.5px; font-weight:700}
+  .samping ol{margin:0; padding-left:18px}
+  .samping li{margin:0 0 7px; color:var(--redup)}
+  .samping li b{color:var(--teks)}
+  .samping .arti{display:grid; grid-template-columns:auto 1fr; gap:7px 10px; align-items:start}
+  .samping .arti span:nth-child(even){color:var(--redup); font-size:12.5px; line-height:1.4}
+  .samping.peringatan{background:var(--kuning-muda); border-color:var(--kuning-garis)}
+  .samping.peringatan h3{color:#7a4406}
+  .samping.peringatan li{color:#5c3a05}
+
+  footer{max-width:1220px; margin:0 auto 26px; padding:0 24px; font-size:12px; color:var(--samar)}
+  footer b{color:var(--redup); font-weight:600}
+
+  .sembunyi{display:none !important}
+  @media (prefers-reduced-motion:reduce){*,*::before,*::after{animation:none !important; transition:none !important}}
+  @media (max-width:980px){
+    .atas-tetap{position:static}
+    .wadah{grid-template-columns:1fr}
+    aside{position:static}
+    .langkah li b{display:none}
+    .langkah li.aktif b{display:inline}
+  }
+  @media (max-width:560px){
+    .kop,.langkah,.wadah,footer{padding-left:14px; padding-right:14px}
+    .kartu{padding:16px}
+    .lampu,.kop p{display:none}
+  }
+</style>
+</head>
+<body>
+
+<div class="atas-tetap">
+<header>
+  <div class="kop">
+    <div class="lambang" aria-hidden="true">
+      <svg viewBox="0 0 24 24" fill="#fff"><path d="M9.5 3h5v6.5H21v5h-6.5V21h-5v-6.5H3v-5h6.5z"/></svg>
+    </div>
+    <div>
+      <h1>CKG Robot</h1>
+      <p id="sub">Input otomatis Cek Kesehatan Gratis · portal Sehat Indonesiaku</p>
+    </div>
+    <div class="kanan">
+      <a class="tombol-panduan" href="/panduan" target="_blank" rel="noopener"
+         title="Buka panduan pemasangan dan pemakaian (PDF)">📖 Baca Panduan</a>
+      <span class="versi-app" title="Versi CKG Robot di komputer ini">
+        <code id="versi-app">v—</code>
+        <button type="button" id="tombol-periksa" class="sembunyi" title="Tanya server apakah ada versi baru">⟳ Periksa pembaruan</button>
+      </span>
+      <a class="tombol-panduan sembunyi" id="tombol-admin" href="/admin"
+         title="Setujui pendaftaran, nonaktifkan akun, lepas komputer">👥 Kelola Petugas</a>
+      <div class="lampu" id="lampu" title="Keadaan robot"><span class="titik"></span><span id="lampu-teks">Siap</span></div>
+      <div class="pengguna" id="kotak-pengguna">
+        <span class="inisial" id="inisial">·</span>
+        <span id="pengguna">—</span>
+        <button class="tautan" id="tombol-keluar" title="Keluar dari aplikasi">Keluar</button>
+      </div>
+    </div>
+  </div>
+</header>
+
+<div class="langkah-bar">
+  <ol class="langkah" id="langkah">
+    <li data-langkah="1"><span class="bulat">1</span><b>Siapkan data</b></li>
+    <li data-langkah="2" class="aktif"><span class="bulat">2</span><b>Pilih pekerjaan</b></li>
+    <li data-langkah="3"><span class="bulat">3</span><b>Login portal</b></li>
+    <li data-langkah="4"><span class="bulat">4</span><b>Pantau &amp; unduh hasil</b></li>
+  </ol>
+</div>
+</div>
+
+<div class="wadah">
+<div class="pita-perbarui sembunyi" id="pita-perbarui" role="status">
+  <div class="isi"><b id="perbarui-judul"></b><span id="perbarui-catatan"></span>
+    <div class="bilah-perbarui sembunyi" id="perbarui-bilah"><i id="perbarui-isi"></i></div></div>
+  <button class="utama" type="button" id="tombol-perbarui">Perbarui sekarang</button>
+</div>
+<div class="pengumuman sembunyi" id="pengumuman" role="status"></div>
+<main>
+  <!-- Konversi berkas mentah. Sengaja TERTUTUP: hanya dipakai sesekali. -->
+  <details class="kartu lipat" id="kartu-konversi">
+    <summary>
+      <div class="kepala-kartu">
+        <span class="no">1</span>
+        <div>
+          <h2>Siapkan data dari Excel <span class="lencana">bila perlu</span></h2>
+          <p class="ket">Ubah berkas .xlsx (register sekolah, skrining TBC, buku kunjungan, template) jadi CSV siap jalan.</p>
+        </div>
+      </div>
+      <span class="panah">▶</span>
+    </summary>
+    <div class="isi-lipat">
+      <input type="file" id="mentah" accept=".xlsx,.xlsm,.csv" hidden>
+      <div class="jatuhan" id="jatuhan">
+        <span class="ikon">📄</span>
+        <b>Pilih berkas</b> atau seret ke sini
+        <span id="nama-berkas">belum ada berkas dipilih</span>
+      </div>
+      <div class="baris" style="margin-top:14px">
+        <div>
+          <label for="konv-kelas">Kelas yang diambil <span class="opsi">(register sekolah)</span></label>
+          <input id="konv-kelas" type="text" placeholder="mis. 7 8 — kosong = semua kelas">
+        </div>
+        <div>
+          <label for="konv-sekolah">Nama sekolah di portal <span class="opsi">(bila tak tertulis)</span></label>
+          <input id="konv-sekolah" type="text" placeholder="mis. SMP Negeri 84">
+        </div>
+        <div>
+          <label for="konv-bentuk">Bentuk hasil</label>
+          <select id="konv-bentuk">
+            <option value="auto">Kenali sendiri (disarankan)</option>
+            <option value="sekolah">CKG Sekolah — 24 kolom</option>
+            <option value="balita">Balita 0-6 th — 18 kolom</option>
+            <option value="balita_tanpa_nik">Balita TANPA NIK (bayi nyonya) — 21 kolom</option>
+            <option value="lansia">Dewasa/Lansia (parameter) — 33 kolom</option>
+            <option value="lansia_real">Dewasa/Lansia (real data) — 34 kolom</option>
+          </select>
+        </div>
+      </div>
+      <label style="display:flex; gap:9px; align-items:flex-start; cursor:pointer; font-weight:400; margin-top:14px; font-size:13px; color:var(--redup)">
+        <input type="checkbox" id="konv-ikut-nik" checked style="margin-top:3px">
+        <span><b style="color:var(--teks)">Samakan tanggal lahir &amp; jenis kelamin dengan NIK.</b>
+        Portal mencocokkan keduanya ke NIK (digit 7–12). Bila isi berkas berbeda, yang dipakai dari NIK
+        dan tiap perubahannya dicatat. Matikan bila isi berkas lebih dapat dipercaya.</span>
+      </label>
+      <label style="display:flex; gap:9px; align-items:flex-start; cursor:pointer; font-weight:400; margin-top:8px; font-size:13px; color:var(--redup)">
+        <input type="checkbox" id="konv-ikut-kosong" style="margin-top:3px">
+        <span><b style="color:var(--teks)">Ikutkan murid tanpa hasil pemeriksaan.</b>
+        Biasanya murid yang semua hasil pemeriksaannya kosong (tidak hadir) DITAHAN, supaya tidak tercatat
+        di portal dengan nilai bawaan (Hb 13, Normal). Centang hanya bila memang ingin menjalankannya.</span>
+      </label>
+      <div class="aksi">
+        <button class="utama" id="tombol-konversi" disabled>Ubah jadi CSV</button>
+        <span class="bantu" style="margin:0">Hasilnya langsung muncul di pilihan "Berkas data peserta".</span>
+      </div>
+      <div id="hasil-konversi"></div>
+    </div>
+  </details>
+
+  <section class="kartu" id="kartu-mulai">
+    <div class="kepala-kartu">
+      <span class="no">2</span>
+      <div>
+        <h2>Pilih pekerjaan</h2>
+        <p class="ket">Tentukan data, peserta mana yang dikerjakan, dan alurnya.</p>
+      </div>
+    </div>
+
+    <div class="baris">
+      <div>
+        <label for="berkas">Berkas data peserta</label>
+        <select id="berkas"></select>
+      </div>
+      <div>
+        <label for="rentang">Nomor data</label>
+        <input id="rentang" type="text" placeholder="mis. 1-1000" value="1-100">
+      </div>
+    </div>
+    <p class="bantu">Satu nomor (<code>7</code>), rentang (<code>1-1000</code>), atau gabungan (<code>1-500, 640</code>).
+      Peserta yang sudah selesai dilewati sendiri.</p>
+
+    <div class="pemisah"></div>
+    <p class="subjudul">Alur CKG</p>
+    <select id="alur" class="sembunyi" aria-hidden="true">
+      <option value="penuh">Pendaftaran → Selesai</option>
+      <option value="daftar_pelayanan">Pendaftaran → Pelayanan → Selesai</option>
+      <option value="daftar_konfirmasi">Pendaftaran → Konfirmasi Hadir → Selesai</option>
+      <option value="pelayanan">Pelayanan → Selesai</option>
+      <option value="pelayanan_sapu">Pelayanan → Selesai (sapu tab Selesai)</option>
+    </select>
+    <div class="pilih-alur" id="pilih-alur" role="radiogroup" aria-label="Alur CKG">
+      <label class="alur"><input type="radio" name="alur-pilih" value="penuh">
+        <span class="nama">Pendaftaran → Selesai</span>
+        <span class="uraian">Semua peserta baru. Yang sudah dilayani portal dilewati.</span></label>
+      <label class="alur"><input type="radio" name="alur-pilih" value="daftar_pelayanan">
+        <span class="nama">Pendaftaran → Pelayanan → Selesai <span class="lencana saran">disarankan</span></span>
+        <span class="uraian">Berkas bercampur: baru dan sudah terdaftar. Tidak ada yang tertinggal.</span></label>
+      <label class="alur"><input type="radio" name="alur-pilih" value="daftar_konfirmasi">
+        <span class="nama">Pendaftaran → Konfirmasi Hadir → Selesai</span>
+        <span class="uraian">Sudah terdaftar tapi belum dikonfirmasi hadir.</span></label>
+      <label class="alur"><input type="radio" name="alur-pilih" value="pelayanan">
+        <span class="nama">Pelayanan → Selesai</span>
+        <span class="uraian">Semua sudah terdaftar, tinggal isi form. Tanpa pendaftaran.</span></label>
+      <label class="alur"><input type="radio" name="alur-pilih" value="pelayanan_sapu">
+        <span class="nama">Pelayanan → Selesai (sapu tab Selesai)</span>
+        <span class="uraian">Seperti di atas, plus periksa ulang form kosong di tab Selesai.</span></label>
+    </div>
+    <p class="jelas" id="jelas-alur"></p>
+
+    <div class="pemisah"></div>
+    <div class="baris">
+      <div>
+        <label for="jenis">Jenis CKG</label>
+        <select id="jenis">
+          <option value="auto">Ikuti isi berkas (disarankan)</option>
+          <option value="dewasa">Dewasa / Lansia</option>
+          <option value="sekolah">CKG Sekolah</option>
+          <option value="balita">Balita (0-6 tahun)</option>
+        </select>
+      </div>
+      <div>
+        <label for="pekerja">Jumlah browser</label>
+        <!-- Pilihannya dibangun dari batas server (config.MAKS_PEKERJA). -->
+        <select id="pekerja">
+          <option value="1">1 browser</option>
+        </select>
+      </div>
+    </div>
+    <p class="kabar tunggu sembunyi" id="kabar-pekerja"></p>
+
+    <div class="aksi">
+      <button class="utama besar" id="tombol-mulai">Buka browser &amp; mulai</button>
+      <span class="bantu" style="margin:0">Browser portal akan terbuka. Login di sana dengan akun puskesmas.</span>
+    </div>
+    <div id="kabar-mode" class="kabar gagal sembunyi"></div>
+  </section>
+
+  <section class="kartu sembunyi" id="kartu-jalan">
+    <div class="kepala-kartu">
+      <span class="no">3</span>
+      <div>
+        <h2>Kemajuan</h2>
+        <p class="ket">Jangan menyentuh jendela browser robot selama bekerja.</p>
+      </div>
+    </div>
+    <div class="hitung">
+      <span class="besar" id="angka">—</span>
+      <span class="kecil" id="hitung">Menyiapkan…</span>
+      <span class="jam" id="waktu"></span>
+    </div>
+    <div class="baris-bar">
+      <div class="bar" id="bar"><i id="bar-isi"></i></div>
+      <span class="persen" id="persen">0%</span>
+    </div>
+    <div id="pekerja-daftar"></div>
+    <div id="kabar" class="kabar sembunyi"></div>
+    <div class="aksi">
+      <button class="utama sembunyi" id="tombol-login">Saya sudah login — lanjutkan</button>
+      <button class="kedua sembunyi" id="tombol-paksa">Mulai paksa (abaikan yang lama)</button>
+      <button class="kedua sembunyi" id="tombol-berhenti">Hentikan setelah peserta ini</button>
+    </div>
+  </section>
+
+  <section class="kartu sembunyi" id="kartu-hasil">
+    <div class="kepala-kartu">
+      <span class="no">4</span>
+      <div>
+        <h2>Hasil</h2>
+        <p class="ket">Klik keping status untuk mengunduh status itu saja.</p>
+      </div>
+      <!-- "Buat Laporan" = berkas data asli + kolom Hasil, beda dengan "Unduh Excel". -->
+      <button class="kedua kecil ujung" id="tombol-laporan"
+              title="Berkas yang dijalankan, ditambah kolom Hasil di kanan Jenis Kelamin">📄 Buat Laporan</button>
+    </div>
+    <div class="rekap" id="rekap"></div>
+    <div class="aksi" style="margin:12px 0 12px">
+      <button class="utama kecil" id="tombol-export">⬇ Unduh Excel</button>
+      <label class="sebaris" for="filter-status">Tampilkan
+        <select id="filter-status"><option value="">semua status</option></select>
+      </label>
+      <span class="petunjuk" id="kabar-export" style="margin:0"></span>
+    </div>
+    <div class="gulung">
+      <table>
+        <thead><tr><th>Baris</th><th>NIK</th><th>Nama</th><th>Status</th><th>Tiket</th></tr></thead>
+        <tbody id="tabel"></tbody>
+      </table>
+    </div>
+    <div class="navigasi sembunyi" id="nav">
+      <button class="kedua kecil" id="nav-prev">‹ Sebelumnya</button>
+      <span id="nav-hal">Halaman 1 / 1</span>
+      <button class="kedua kecil" id="nav-next">Berikutnya ›</button>
+      <label class="sebaris" for="nav-isi">Tampilkan
+        <select id="nav-isi">
+          <option value="10">10</option>
+          <option value="20">20</option>
+          <option value="30">30</option>
+        </select>
+        baris</label>
+      <span class="petunjuk" id="nav-info" style="margin:0"></span>
+    </div>
+    <p class="petunjuk" id="berkas-hasil"></p>
+  </section>
+
+  <section class="kartu sembunyi" id="kartu-log">
+    <div class="kepala-kartu">
+      <span class="no">5</span>
+      <div>
+        <h2>Catatan proses</h2>
+        <p class="ket">Rincian langkah robot. Sertakan isinya bila melapor masalah.</p>
+      </div>
+    </div>
+    <pre id="log"></pre>
+  </section>
+</main>
+
+<aside>
+  <div class="samping">
+    <h3>Cara pakai</h3>
+    <ol>
+      <li><b>Siapkan data.</b> Ubah Excel jadi CSV, atau pilih berkas yang sudah ada.</li>
+      <li><b>Pilih pekerjaan</b>: berkas, nomor data, dan alur.</li>
+      <li><b>Login portal</b> di browser yang terbuka, lalu tekan <b>"Saya sudah login"</b>.</li>
+      <li><b>Pantau</b> sampai selesai, lalu <b>Unduh Excel</b>.</li>
+    </ol>
+  </div>
+  <div class="samping">
+    <h3>Arti status</h3>
+    <div class="arti">
+      <span class="tag t-tuntas">tuntas</span><span>Selesai penuh, semua form terisi</span>
+      <span class="tag t-sudah">sudah_pelayanan</span><span>Sudah dilayani sebelumnya</span>
+      <span class="tag t-beda">puskesmas_berbeda</span><span>Sudah diperiksa di tempat lain</span>
+      <span class="tag t-tolak">tidak_valid</span><span>Ditolak portal. Betulkan datanya</span>
+      <span class="tag t-tolak">tidak_ditemukan</span><span>Periksa NIK, sekolah, kelas</span>
+      <span class="tag t-gagal">gagal…</span><span>Gagal di tengah. Jalankan ulang</span>
+    </div>
+  </div>
+  <div class="samping peringatan">
+    <h3>Penting</h3>
+    <ol>
+      <li>Jangan tutup <b>jendela hitam</b> aplikasi.</li>
+      <li>Jangan sentuh <b>browser robot</b> saat bekerja.</li>
+      <li>Berhenti sendiri setelah 3 gagal beruntun. Jalankan lagi nomor yang sama.</li>
+    </ol>
+  </div>
+</aside>
+</div>
+
+<footer>CKG Robot · dibuat oleh <b>Muhammad Dava Aryoga</b> (Pasukan Putih Lagoa)</footer>
+
+<script>
+const $ = (id) => document.getElementById(id);
+// "tidak_ditemukan" diberi warna peringatan, bukan merah: peserta yang tidak
+// ada di daftar biasanya soal datanya (NIK, sekolah, atau kelas), bukan alatnya.
+const KELAS = { tuntas:'t-tuntas', sudah_pelayanan:'t-sudah',
+                sudah_terdaftar:'t-sudah', ckg_umum:'t-sudah',
+                // Sudah diperiksa, hanya di sekolah/kelas yang lain - selesai,
+                // tapi datanya yang perlu dibetulkan.
+                sekolah_berbeda:'t-beda', kelas_berbeda:'t-beda',
+                // Sudah diperiksa, hanya lewat jalur sekolah atau oleh
+                // puskesmas lain - dua-duanya selesai, bukan kegagalan.
+                ckg_sekolah:'t-sudah', puskesmas_berbeda:'t-beda',
+                tidak_valid:'t-tolak', tidak_ditemukan:'t-tolak',
+                daftar_kosong:'t-tolak' };
+
+const JELAS = {
+  penuh: 'Peserta didaftarkan (halaman 1 → 2 → tiket), lalu langsung dicari di halaman pelayanan, '
+       + 'dimulai pemeriksaannya, dan seluruh form diisi. Murid CKG Sekolah tetap dikonfirmasi hadir '
+       + 'lebih dulu. Peserta yang dijawab portal "sudah menerima layanan" dilewati.',
+  daftar_pelayanan: 'Sama seperti Pendaftaran → Selesai, TAPI peserta yang dijawab portal "sudah '
+       + 'menerima layanan" tidak dilewati: ia dilanjutkan lewat halaman pelayanan lalu formnya diisi. '
+       + 'Lebih lambat ±30 detik per peserta seperti itu, tapi tidak ada yang tertinggal.',
+  daftar_konfirmasi: 'Untuk peserta yang SUDAH terdaftar tapi belum dikonfirmasi hadir: NIK-nya dicari '
+       + 'di daftar pendaftaran, dikonfirmasi hadir, lalu formnya diisi.',
+  pelayanan: 'Tanpa pendaftaran. NIK dicari langsung di halaman pelayanan, tombol Mulai ditekan, lalu '
+       + 'seluruh form diisi. Peserta yang sudah ada di tab "Selesai Pemeriksaan" langsung dilewati '
+       + '(dilaporkan sudah_pelayanan, bukan gagal).',
+  pelayanan_sapu: 'Seperti Pelayanan → Selesai, tapi peserta di tab "Selesai Pemeriksaan" ikut dibuka '
+       + 'lalu form yang masih kosong diisi. Portal menaruh orang di tab Selesai menurut status '
+       + 'orangnya, bukan kelengkapan formnya.',
+};
+function jelaskanAlur(){
+  $('jelas-alur').textContent = JELAS[$('alur').value] || '';
+  document.querySelectorAll('#pilih-alur input').forEach(r => { r.checked = r.value === $('alur').value; });
+}
+document.querySelectorAll('#pilih-alur input').forEach(r => r.addEventListener('change', () => {
+  $('alur').value = r.value; jelaskanAlur();
+}));
+
+// Penunjuk langkah di bawah kepala halaman.
+function tandaiLangkah(n){
+  document.querySelectorAll('#langkah li').forEach(li => {
+    const k = Number(li.dataset.langkah);
+    li.classList.toggle('aktif', k === n);
+    li.classList.toggle('lewat', k < n);
+  });
+}
+$('kartu-konversi').addEventListener('toggle', () => {
+  if ($('kartu-jalan').classList.contains('sembunyi')) tandaiLangkah($('kartu-konversi').open ? 1 : 2);
+});
+
+function jelaskanPekerja(){
+  const n = parseInt($('pekerja').value, 10);
+  const k = $('kabar-pekerja');
+  k.classList.toggle('sembunyi', n < 2);
+  if (n >= 2){
+    k.textContent = `${n} browser akan terbuka, dan tiap browser perlu DIPERIKSA `
+      + `LOGIN SENDIRI dengan akun puskesmas yang BERBEDA. Datanya dibagi rata, `
+      + `jadi tidak ada peserta yang dikerjakan dua kali.`;
+  }
+}
+$('pekerja').onchange = jelaskanPekerja;
+$('alur').onchange = jelaskanAlur;
+jelaskanAlur();
+
+function lampu(teks, hidup){
+  $('lampu-teks').textContent = teks;
+  $('lampu').dataset.hidup = hidup ? '1' : '0';
+}
+
+// Sesi bisa habis di tengah jalan (12 jam) atau aplikasi dijalankan ulang.
+// Semua panggilan lewat sini supaya keadaan itu berakhir di halaman masuk,
+// bukan pada tabel yang diam-diam berhenti diperbarui.
+async function panggil(alamat, pilihan){
+  const r = await fetch(alamat, pilihan);
+  if (r.status === 401){ location.href = '/'; throw new Error('sesi habis'); }
+  return r;
+}
+
+$('tombol-keluar').onclick = async () => {
+  await fetch('/api/keluar', {method:'POST'});
+  location.href = '/';
+};
+
+// ------------------------------------------------- ubah berkas mentah -> CSV
+// Berkas dipilih LANGSUNG dari komputer, tidak perlu dipindah ke folder dulu.
+// Isinya dikirim sebagai base64 di badan permintaan JSON yang sudah dipakai
+// halaman ini; register sekolah terbesar pun cuma ~225 KB, jadi tidak perlu
+// unggahan bertahap. Salinannya disimpan server ke `mentah/` supaya bila
+// hasilnya meleset, berkas persis yang dipakai masih bisa diperiksa.
+let berkasDipilih = null;
+
+function pakaiBerkas(f){
+  berkasDipilih = f || null;
+  $('nama-berkas').textContent = f ? f.name : 'belum ada berkas dipilih';
+  $('jatuhan').classList.toggle('siap', !!f);
+  $('tombol-konversi').disabled = !f;
+  $('hasil-konversi').innerHTML = '';
+}
+
+$('jatuhan').onclick = () => $('mentah').click();
+$('mentah').onchange = e => pakaiBerkas(e.target.files[0]);
+['dragenter','dragover'].forEach(n => $('jatuhan').addEventListener(n, e => {
+  e.preventDefault(); $('jatuhan').classList.add('siap');
+}));
+$('jatuhan').addEventListener('dragleave', () => {
+  if (!berkasDipilih) $('jatuhan').classList.remove('siap');
+});
+$('jatuhan').addEventListener('drop', e => {
+  e.preventDefault(); pakaiBerkas(e.dataTransfer.files[0]);
+});
+
+function bacaBase64(f){
+  return new Promise((selesai, gagal) => {
+    const p = new FileReader();
+    p.onerror = () => gagal(new Error('berkas tidak terbaca'));
+    // readAsDataURL menghasilkan "data:...;base64,XXXX" - yang dikirim
+    // hanya bagian sesudah koma.
+    p.onload = () => selesai(String(p.result).split(',')[1] || '');
+    p.readAsDataURL(f);
+  });
+}
+
+function gambarLaporan(l){
+  const k = [];
+  if (l.sebutan) k.push(`<p class="kecil">Dikenali sebagai <b>${l.sebutan}</b>${l.alasan ? ' — ' + l.alasan : ''}</p>`);
+  if (l.jumlah) k.push(`<p class="oke"><b>${l.jumlah} baris</b> ditulis ke <code>${l.tujuan || ''}</code></p>`);
+  // Peringatan yang diawali BERHENTI berarti tidak ada berkas yang ditulis —
+  // dibedakan warnanya supaya tidak terbaca sebagai catatan biasa.
+  (l.peringatan || []).forEach(p => {
+    k.push(`<p class="${/^BERHENTI/.test(p) ? 'stop' : 'awas'}">${p}</p>`);
+  });
+  const c = l.catatan || [];
+  if (c.length){
+    k.push(`<p class="kecil">${c.length} hal perlu dicek manusia:</p>`);
+    c.slice(0, 12).forEach(x => k.push(`<p class="kecil">${x}</p>`));
+    if (c.length > 12) k.push(`<p class="kecil">… dan ${c.length - 12} lagi</p>`);
+  }
+  $('hasil-konversi').innerHTML = `<div class="lapor"><div class="judul">${l.berkas || ''}</div>${k.join('')}</div>`;
+}
+
+$('tombol-konversi').onclick = async () => {
+  if (!berkasDipilih) return;
+  const b = $('tombol-konversi');
+  b.disabled = true; b.textContent = 'Mengubah…';
+  try {
+    const isi = await bacaBase64(berkasDipilih);
+    const l = await (await panggil('/api/konversi', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({berkas: berkasDipilih.name, isi: isi,
+                            kelas: $('konv-kelas').value,
+                            sekolah: $('konv-sekolah').value,
+                            bentuk: $('konv-bentuk').value,
+                            ikut_nik: $('konv-ikut-nik').checked,
+                            ikut_kosong: $('konv-ikut-kosong').checked})
+    })).json();
+    gambarLaporan(l);
+    // Berkas baru harus langsung bisa dipilih di kartu berikutnya, kalau tidak
+    // petugas mengira konversinya gagal.
+    if (l.jumlah) await awal();
+  } finally {
+    b.disabled = !berkasDipilih; b.textContent = 'Ubah jadi CSV';
+  }
+};
+
+async function awal(){
+  const d = await (await panggil('/api/awal')).json();
+  $('pengguna').textContent = d.pengguna || '—';
+  $('inisial').textContent = (d.pengguna || '·').trim().charAt(0) || '·';
+  // Login online: tombol admin dan pengumuman dari server.
+  $('tombol-admin').classList.toggle('sembunyi', d.peran !== 'admin');
+  $('pengumuman').textContent = d.pengumuman ? '📢 ' + d.pengumuman : '';
+  $('pengumuman').classList.toggle('sembunyi', !d.pengumuman);
+  gambarPembaruan(d.pembaruan);
+  $('versi-app').textContent = 'v' + (d.versi || '?');
+  $('tombol-periksa').classList.toggle('sembunyi', !d.online);
+  if (d.online && !periksaOtomatis) periksaOtomatis = setInterval(() => periksaPembaruan(true), 60 * 60 * 1000);
+  $('berkas').innerHTML = d.berkas
+    .map(b => `<option value="${b.nama}">${b.nama} — ${b.jumlah} peserta</option>`)
+    .join('') || '<option value="">(tidak ada berkas CSV)</option>';
+
+  // Pengaturan dari pengaturan.txt dipakai sebagai pilihan AWAL saja —
+  // yang menentukan tetap apa yang dipilih di halaman ini.
+  // Tiap browser = satu akun puskesmas yang login sendiri.
+  const maks = Math.max(1, Number(d.maks_pekerja) || 1);
+  $('pekerja').innerHTML = Array.from({length: maks}, (_, i) =>
+    `<option value="${i + 1}">${i + 1} browser</option>`).join('');
+
+  if (d.kategori) $('jenis').value = d.kategori;
+  if (d.tahap === 'pelayanan') $('alur').value = 'pelayanan';
+  jelaskanAlur();
+
+  if (d.mode_uji){
+    $('kabar-mode').textContent =
+      'MODE UJI menyala — peserta TIDAK akan benar-benar didaftarkan. '
+      + 'Ubah "mode uji = tidak" di pengaturan.txt bila ingin mendaftarkan sungguhan.';
+    $('kabar-mode').classList.remove('sembunyi');
+  }
+}
+
+// ------------------------------------------------------------- pembaruan
+// Tombol "Periksa pembaruan" + pemeriksaan otomatis tiap jam. Yang otomatis
+// diam saja bila tidak ada versi baru, dan dilewati selama robot bekerja.
+let periksaOtomatis = null;
+async function periksaPembaruan(diam){
+  // Hasilnya ditampilkan DI tombol itu sendiri selama beberapa detik, bukan
+  // di sebelahnya - tulisan tambahan melebarkan kepala halaman sampai nama
+  // petugas dan subjudulnya terlipat.
+  const b = $('tombol-periksa');
+  if (diam && $('lampu').dataset.hidup === '1') return;
+  const tampil = (teks, kelas, judul) => {
+    b.textContent = teks; b.className = kelas; b.title = judul || 'Tanya server apakah ada versi baru';
+    setTimeout(() => { b.textContent = '⟳ Periksa pembaruan'; b.className = '';
+                       b.title = 'Tanya server apakah ada versi baru'; b.disabled = false; }, 5000);
+  };
+  if (!diam){ b.disabled = true; b.textContent = '⟳ Memeriksa…'; }
+  try {
+    const r = await panggil('/api/periksa-pembaruan', {method:'POST', headers:{'Content-Type':'application/json'}, body:'{}'});
+    const d = await r.json();
+    if (!d.ok){ if (!diam) tampil('⚠ Gagal memeriksa', 'gagal', d.pesan); return; }
+    gambarPembaruan(d.pembaruan);
+    if (diam) return;
+    if (d.pembaruan){
+      tampil('🔔 Ada versi baru', 'ok');
+      $('pita-perbarui').scrollIntoView({behavior:'smooth', block:'center'});
+    } else {
+      tampil('✓ Sudah versi terbaru', 'ok');
+    }
+  } catch (e) {
+    if (!diam) tampil('⚠ Gagal memeriksa', 'gagal', 'Tidak bisa menghubungi aplikasi.');
+  }
+}
+$('tombol-periksa').onclick = () => periksaPembaruan(false);
+
+// Info datang dari server (login online). 'wajib' = versi ini di bawah versi
+// minimal: pekerjaan tidak bisa dimulai sampai diperbarui.
+let infoPembaruan = null;
+function gambarPembaruan(p){
+  infoPembaruan = p || null;
+  const pita = $('pita-perbarui');
+  pita.classList.toggle('sembunyi', !p);
+  if (!p) return;
+  pita.classList.toggle('wajib', !!p.wajib);
+  $('perbarui-judul').textContent = p.wajib
+    ? `Versi ini (${p.versi_ini}) sudah tidak boleh dipakai — perbarui ke ${p.versi} untuk bisa bekerja.`
+    : `🔔 Versi baru ${p.versi} tersedia (versi ini: ${p.versi_ini}).`;
+  $('perbarui-catatan').textContent = p.catatan || '';
+}
+
+$('tombol-perbarui').onclick = async () => {
+  const p = infoPembaruan;
+  if (!p) return;
+  if (!confirm(`Perbarui CKG Robot ke versi ${p.versi}?
+
+Aplikasi akan dimulai ulang dan kamu perlu masuk lagi. `
+             + 'Data peserta, hasil, dan pengaturan tidak berubah.')) return;
+  const b = $('tombol-perbarui');
+  b.disabled = true;
+  const r = await panggil('/api/perbarui', {method:'POST', headers:{'Content-Type':'application/json'}, body:'{}'});
+  const d = await r.json().catch(() => ({ok:false, pesan:'Aplikasi tidak menjawab.'}));
+  if (!d.ok){ $('perbarui-catatan').textContent = d.pesan || 'Tidak bisa memperbarui.'; b.disabled = false; return; }
+  $('perbarui-bilah').classList.remove('sembunyi');
+  pantauPembaruan(p.versi);
+};
+
+async function pantauPembaruan(target){
+  const b = $('tombol-perbarui');
+  let s = null;
+  try { s = await (await fetch('/api/perbarui-status')).json(); } catch (e) {}
+  if (s && s.tahap === 'gagal'){
+    $('perbarui-judul').textContent = 'Pembaruan gagal — aplikasi tetap di versi lama.';
+    $('perbarui-catatan').textContent = s.galat || '';
+    $('perbarui-bilah').classList.add('sembunyi');
+    b.disabled = false; b.textContent = 'Coba lagi';
+    return;
+  }
+  if (s && s.tahap !== 'mulai_ulang'){
+    $('perbarui-catatan').textContent = s.pesan || '';
+    $('perbarui-isi').style.width = (s.persen || 0) + '%';
+    setTimeout(() => pantauPembaruan(target), 700);
+    return;
+  }
+  // 'mulai_ulang' (atau server lama sudah berhenti): tunggu server versi baru.
+  if (s) $('perbarui-catatan').textContent = s.pesan || '';
+  $('perbarui-isi').style.width = '100%';
+  $('perbarui-judul').textContent = 'Memulai ulang aplikasi…';
+  for (let i = 0; i < 120; i++){
+    await new Promise(r => setTimeout(r, 1000));
+    try {
+      const v = await (await fetch('/api/perlu-akun', {cache:'no-store'})).json();
+      if (v.versi === target){ location.href = '/'; return; }
+    } catch (e) {}
+  }
+  $('perbarui-judul').textContent = 'Aplikasi belum menyala lagi.';
+  $('perbarui-catatan').textContent = 'Tutup jendela hitam aplikasi, lalu buka aplikasi.bat lagi. '
+                                    + 'Pembaruannya sudah terpasang.';
+}
+
+async function mulai(paksa){
+  $('tombol-mulai').disabled = true;
+  hasilTerakhir = []; hal = 1; ikuti = true;   // pekerjaan baru, tabel dari awal
+  $('kartu-jalan').classList.remove('sembunyi');
+  $('kartu-log').classList.remove('sembunyi');
+  tandaiLangkah(3);
+  $('kartu-jalan').scrollIntoView({behavior:'smooth', block:'start'});
+  lampu('Menyiapkan', true);
+  const r = await panggil('/api/mulai', {method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({berkas: $('berkas').value, rentang: $('rentang').value,
+                          jenis: $('jenis').value, alur: $('alur').value,
+                          pekerja: parseInt($('pekerja').value, 10),
+                          paksa: !!paksa})});
+  const d = await r.json().catch(() => ({ok:false, pesan:'Aplikasi tidak menjawab.'}));
+  // Penolakan HARUS terlihat. Dulu jawabannya diabaikan, sehingga permintaan
+  // yang ditolak tampak persis seperti "Menyiapkan…" yang tak pernah selesai.
+  if (!d.ok){
+    const kabar = $('kabar');
+    kabar.className = 'kabar gagal';
+    kabar.textContent = d.pesan || 'Tidak bisa memulai.';
+    if (d.perlu_perbarui) $('pita-perbarui').scrollIntoView({behavior:'smooth', block:'center'});
+    $('tombol-paksa').classList.toggle('sembunyi', !d.bisa_paksa);
+    $('tombol-mulai').disabled = false;
+    lampu('Ditolak', false);
+    return;
+  }
+  $('tombol-paksa').classList.add('sembunyi');
+  pantau();
+}
+$('tombol-mulai').onclick = () => mulai(false);
+$('tombol-paksa').onclick = () => mulai(true);
+
+$('tombol-login').onclick = async () => {
+  $('tombol-login').classList.add('sembunyi');
+  await kirimLogin(0);
+};
+
+// Memunculkan jendela browser seorang pekerja. Kegagalannya ditampilkan di
+// keping P-nya sendiri, bukan di kotak pesan bersama: yang gagal cuma satu
+// browser, dan pesan di tempat lain membuat petugas mengira seluruh pekerjaan
+// bermasalah.
+async function fokusPekerja(nomor, tombol){
+  const semula = tombol.textContent;
+  tombol.disabled = true;
+  try {
+    const r = await panggil('/api/fokus', {method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({pekerja: nomor})});
+    const d = await r.json();
+    if (!d.ok){
+      tombol.textContent = '✕';
+      tombol.title = d.pesan || 'Gagal memunculkan jendela.';
+      setTimeout(() => { tombol.textContent = semula; }, 2500);
+    }
+  } catch (e) {
+    tombol.textContent = '✕';
+    setTimeout(() => { tombol.textContent = semula; }, 2500);
+  } finally {
+    tombol.disabled = false;
+  }
+}
+
+async function kirimLogin(nomor){
+  await panggil('/api/sudah-login', {method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({pekerja: nomor})});
+}
+
+// Tiap pekerja punya browser dan akun portalnya sendiri, jadi tombol
+// "sudah login" juga per pekerja — bukan satu tombol untuk semuanya.
+function gambarPekerja(daftar){
+  const wadah = $('pekerja-daftar');
+  // Ditampilkan mulai SATU pekerja, bukan dua. Dulu barisnya hanya muncul saat
+  // ada beberapa browser; sekarang barisnya membawa nama akun, dan justru saat
+  // satu browser pun petugas perlu tahu akun mana yang sedang dipakai.
+  if (!daftar || !daftar.length){ wadah.innerHTML = ''; return; }
+  // Slot tombol login hanya disediakan bila MASIH ADA yang membutuhkannya.
+  // Kalau selalu disediakan, sesudah semua pekerja login akan tersisa ruang
+  // kosong di ujung kanan dan bilahnya tidak pernah sampai tepi. Karena
+  // keputusannya diambil untuk SELURUH daftar sekaligus - bukan per baris -
+  // panjang bilah tiap pekerja tetap sama persis di keadaan apa pun.
+  const adaTombol = daftar.some(w => w.keadaan === 'menunggu-login');
+  wadah.innerHTML = daftar.map(w => {
+    const persen = w.total ? (w.sudah / w.total) * 100 : 0;
+    const tombol = w.keadaan === 'menunggu-login'
+      ? `<button class="utama kecil" data-pekerja="${w.nomor}">Sudah login</button>` : '';
+    // Nama akun baru terbaca sesudah login; sebelum itu diberi tanda jelas
+    // supaya bedanya "belum login" dan "tak terbaca" tidak samar.
+    const akun = w.akun
+      ? `<span class="akun" title="Akun portal pekerja ${w.nomor}">${w.akun}</span>`
+      : `<span class="akun kosong">belum login</span>`;
+    return `<div class="pekerja">
+      <button type="button" class="nomor" data-fokus="${w.nomor}"
+              title="Tampilkan jendela browser pekerja ${w.nomor}">P${w.nomor}</button>
+      ${akun}
+      <span class="angka">${w.sudah}/${w.total}</span>
+      <span class="bar"><i style="width:${persen}%"></i></span>
+      <span class="keadaan">${NAMA_KEADAAN[w.keadaan] || w.keadaan}</span>
+      ${adaTombol ? `<span class="slot-aksi">${tombol}</span>` : ''}</div>`;
+  }).join('');
+  wadah.querySelectorAll('button[data-pekerja]').forEach(b => {
+    b.onclick = () => { b.disabled = true; kirimLogin(parseInt(b.dataset.pekerja, 10)); };
+  });
+  wadah.querySelectorAll('button[data-fokus]').forEach(b => {
+    b.onclick = () => fokusPekerja(parseInt(b.dataset.fokus, 10), b);
+  });
+}
+
+$('tombol-berhenti').onclick = async () => {
+  $('tombol-berhenti').disabled = true;
+  await panggil('/api/berhenti', {method:'POST'});
+};
+
+// Satu jalur unduh dipakai tombol maupun keping rekap. `status` kosong berarti
+// seluruh hasil; diisi berarti hanya peserta berstatus itu.
+async function unduhExcel(status){
+  const kabar = $('kabar-export');
+  kabar.textContent = status ? `Menyiapkan ${status}…` : 'Menyiapkan…';
+  const r = await panggil('/api/export'
+      + (status ? '?status=' + encodeURIComponent(status) : ''));
+  // Kegagalan dijawab JSON, keberhasilan berupa berkas. Dibedakan dari
+  // jenis isinya, bukan dari kode status — supaya pesan sebabnya terbaca.
+  if ((r.headers.get('Content-Type') || '').includes('json')) {
+    const d = await r.json();
+    kabar.textContent = d.pesan || 'Gagal mengunduh.';
+    return;
+  }
+  const nama = (r.headers.get('Content-Disposition') || '')
+      .match(/filename="([^"]+)"/)?.[1] || 'hasil.xlsx';
+  const tautan = document.createElement('a');
+  tautan.href = URL.createObjectURL(await r.blob());
+  tautan.download = nama;
+  tautan.click();
+  URL.revokeObjectURL(tautan.href);
+  kabar.textContent = 'Tersimpan: ' + nama;
+}
+
+$('tombol-export').onclick = () => unduhExcel('');
+
+// Laporan memakai jalur unduh yang SAMA - termasuk cara membedakan kegagalan
+// (dijawab JSON) dari keberhasilan (berupa berkas), supaya pesan sebabnya
+// terbaca alih-alih berkas kosong yang tersimpan diam-diam.
+async function unduhLaporan(){
+  const kabar = $('kabar-export');
+  const tombol = $('tombol-laporan');
+  kabar.textContent = 'Menyusun laporan…';
+  tombol.disabled = true;
+  try {
+    const r = await panggil('/api/laporan');
+    if ((r.headers.get('Content-Type') || '').includes('json')) {
+      const d = await r.json();
+      kabar.textContent = d.pesan || 'Gagal membuat laporan.';
+      return;
+    }
+    const nama = (r.headers.get('Content-Disposition') || '')
+        .match(/filename="([^"]+)"/)?.[1] || 'laporan.xlsx';
+    const tautan = document.createElement('a');
+    tautan.href = URL.createObjectURL(await r.blob());
+    tautan.download = nama;
+    tautan.click();
+    URL.revokeObjectURL(tautan.href);
+    kabar.textContent = 'Laporan tersimpan: ' + nama;
+  } finally {
+    tombol.disabled = false;
+  }
+}
+
+$('tombol-laporan').onclick = unduhLaporan;
+
+// --- Halaman tabel hasil ---------------------------------------------------
+// Selama masih berjalan, halaman terakhir diikuti sendiri supaya peserta yang
+// baru selesai langsung terlihat. Begitu petugas menekan tombol navigasi,
+// pengikutan berhenti — kecuali ia memang kembali ke halaman terakhir.
+let isiHal = 10;
+let hasilTerakhir = [];
+let hal = 1;
+let ikuti = true;
+let saring = '';          // status yang sedang ditampilkan; '' = semua
+
+// Yang disaring hanya TAMPILANNYA. `hasilTerakhir` tetap utuh, sehingga rekap,
+// jumlah peserta, dan tombol unduh tetap bicara tentang seluruh hasil - bukan
+// tentang potongan yang kebetulan sedang dilihat.
+const barisTampak = () => saring
+  ? hasilTerakhir.filter(r => (r.status || '').trim() === saring)
+  : hasilTerakhir;
+
+const jmlHalaman = () => Math.max(1, Math.ceil(barisTampak().length / isiHal));
+
+// Urutan tetap supaya rekapnya tidak melompat-lompat tiap peserta selesai:
+// yang beres dulu, lalu yang perlu dicek, lalu yang gagal. Status di luar
+// daftar ini ikut di belakang, diurutkan menurut jumlahnya.
+const URUT_STATUS = ['tuntas', 'layanan_selesai', 'sudah_pelayanan',
+                     'ckg_umum', 'ckg_sekolah', 'puskesmas_berbeda',
+                     'sekolah_berbeda', 'kelas_berbeda',
+                     'sudah_terdaftar', 'tidak_valid', 'tidak_ditemukan',
+                     'daftar_kosong', 'layanan_sebagian', 'uji'];
+
+function gambarRekap(){
+  const jumlah = {};
+  for (const r of hasilTerakhir){
+    const s = (r.status || '').trim() || '(tanpa status)';
+    jumlah[s] = (jumlah[s] || 0) + 1;
+  }
+  const urut = Object.keys(jumlah).sort((a, b) => {
+    const ia = URUT_STATUS.indexOf(a), ib = URUT_STATUS.indexOf(b);
+    if (ia !== ib) return (ia < 0 ? 99 : ia) - (ib < 0 ? 99 : ib);
+    return jumlah[b] - jumlah[a];
+  });
+  // <button>, bukan <span>: keping ini bisa ditekan, jadi ia harus bisa
+  // dijangkau keyboard dan terbaca pembaca layar sebagai tombol.
+  $('rekap').innerHTML = urut.map(s =>
+      `<button type="button" class="tag ${KELAS[s] || 't-gagal'}" data-status="${s}"
+        title="Unduh Excel berisi ${jumlah[s]} peserta berstatus ${s}"
+        >${s} <b>${jumlah[s]}</b></button>`).join('')
+    + `<span class="jumlah-semua">${hasilTerakhir.length} peserta</span>`;
+  $('rekap').querySelectorAll('.tag').forEach(b => {
+    b.onclick = () => unduhExcel(b.dataset.status);
+  });
+
+  // Pilihan penyaring mengikuti status yang BENAR-BENAR ada. Pilihan yang
+  // sedang dipakai dipertahankan walau jumlahnya berubah tiap peserta selesai;
+  // bila statusnya lenyap sama sekali, penyaring kembali ke "semua status"
+  // supaya tabel tidak mendadak kosong tanpa sebab yang terlihat.
+  const pilih = $('filter-status');
+  if (saring && !urut.includes(saring)) saring = '';
+  pilih.innerHTML = `<option value="">semua status (${hasilTerakhir.length})</option>`
+    + urut.map(s => `<option value="${s}">${s} (${jumlah[s]})</option>`).join('');
+  pilih.value = saring;
+}
+
+function gambarTabel(){
+  gambarRekap();                       // menentukan `saring` bila statusnya lenyap
+  const tampak = barisTampak();
+  const total = tampak.length;
+  const maks = jmlHalaman();
+  if (ikuti) hal = maks;
+  hal = Math.min(Math.max(1, hal), maks);
+
+  const mulai = (hal - 1) * isiHal;
+  $('tabel').innerHTML = tampak.slice(mulai, mulai + isiHal).map(r => `<tr>
+    <td class="nomor">${r.baris ?? ''}</td><td class="nik">${r.nik ?? ''}</td>
+    <td>${r.nama ?? ''}</td>
+    <td><span class="tag ${KELAS[r.status] || 't-gagal'}">${r.status}</span></td>
+    <td class="tiket">${r.tiket || ''}</td></tr>`).join('');
+
+  $('nav-hal').textContent = `Halaman ${hal} / ${maks}`;
+  $('nav-info').textContent = total
+    ? `${mulai + 1}–${Math.min(mulai + isiHal, total)} dari ${total} peserta`
+      + (saring ? ` berstatus ${saring}` : '') : '';
+  $('nav-prev').disabled = hal <= 1;
+  $('nav-next').disabled = hal >= maks;
+  // Baris navigasi tetap tampak walau hasilnya cuma satu halaman — di situlah
+  // pemilih jumlah barisnya berada.
+  $('nav').classList.toggle('sembunyi', total === 0);
+}
+
+function pindah(arah){
+  hal = Math.min(Math.max(1, hal + arah), jmlHalaman());
+  ikuti = (hal === jmlHalaman());
+  gambarTabel();
+}
+$('nav-prev').onclick = () => pindah(-1);
+$('nav-next').onclick = () => pindah(1);
+
+$('filter-status').onchange = () => {
+  saring = $('filter-status').value;
+  // Kembali ke halaman 1: halaman 7 dari daftar penuh biasanya tidak ada lagi
+  // sesudah disaring, dan petugas akan melihat tabel kosong padahal datanya ada.
+  hal = 1;
+  ikuti = false;      // penyaringan itu sengaja - jangan diseret ke halaman akhir
+  gambarTabel();
+};
+
+$('nav-isi').onchange = () => {
+  // Baris pertama yang sedang dilihat dipertahankan, supaya mengganti jumlah
+  // baris tidak melemparkan petugas ke bagian daftar yang sama sekali lain.
+  const barisAtas = (hal - 1) * isiHal;
+  isiHal = parseInt($('nav-isi').value, 10) || 10;
+  hal = Math.floor(barisAtas / isiHal) + 1;
+  ikuti = (hal >= jmlHalaman());
+  gambarTabel();
+};
+
+const NAMA_KEADAAN = {
+  'menunggu-login':'Menunggu login', 'berjalan':'Berjalan',
+  'selesai':'Selesai', 'gagal':'Berhenti', 'siap':'Siap',
+};
+
+// --- Penghitung waktu ------------------------------------------------------
+// Titik mulainya datang dari SERVER (`mulai_pada`), bukan dari saat halaman
+// dibuka: kalau dihitung di sini, memuat ulang halaman di tengah pekerjaan
+// akan mengulang dari nol dan melaporkan durasi yang lebih pendek dari
+// kenyataan. Detiknya tetap ditambah di sini supaya angkanya berjalan halus
+// tanpa perlu menanyai server tiap detik.
+let mulaiDetik = 0;      // epoch detik, dari server
+let jamJalan = false;
+let jamTicker = null;
+
+function jamTeks(detik){
+  const d = Math.max(0, Math.floor(detik));
+  const j = Math.floor(d / 3600), m = Math.floor((d % 3600) / 60), s = d % 60;
+  const dua = n => String(n).padStart(2, '0');
+  return (j ? dua(j) + ':' : '') + dua(m) + ':' + dua(s);
+}
+
+function gambarJam(){
+  const el = $('waktu');
+  if (!mulaiDetik){ el.textContent = ''; return; }
+  el.textContent = '⏱ ' + jamTeks(Date.now() / 1000 - mulaiDetik);
+  el.dataset.jalan = jamJalan ? '1' : '0';
+}
+
+function tampilkan(s){
+  tandaiLangkah(s.keadaan === 'menunggu-login' ? 3 : 4);
+  $('angka').textContent = s.total ? `${s.selesai}/${s.total}` : '—';
+  $('hitung').textContent = s.total ? 'peserta dikerjakan' : 'Menyiapkan…';
+  const persen = s.total ? (s.selesai / s.total) * 100 : 0;
+  $('bar-isi').style.width = persen + '%';
+  $('persen').textContent = Math.round(persen) + '%';
+  $('bar').dataset.jalan = s.keadaan === 'berjalan' ? '1' : '0';
+
+  // Jamnya berhenti begitu pekerjaan selesai atau berhenti - angka terakhirnya
+  // dibiarkan terbaca, sebab itulah lama pekerjaan yang baru saja berjalan.
+  mulaiDetik = s.mulai_pada || 0;
+  jamJalan = s.keadaan === 'berjalan' || s.keadaan === 'menunggu-login';
+  if (jamJalan && !jamTicker) jamTicker = setInterval(gambarJam, 1000);
+  if (!jamJalan && jamTicker){ clearInterval(jamTicker); jamTicker = null; }
+  gambarJam();
+  lampu(NAMA_KEADAAN[s.keadaan] || s.keadaan, s.keadaan === 'berjalan'
+        || s.keadaan === 'menunggu-login');
+
+  const kabar = $('kabar');
+  kabar.className = 'kabar ' + (s.keadaan === 'menunggu-login' ? 'tunggu'
+                    : s.keadaan === 'gagal' ? 'gagal'
+                    : s.keadaan === 'selesai' ? 'selesai' : 'sembunyi');
+  kabar.textContent = s.pesan || '';
+  if (!s.pesan) kabar.classList.add('sembunyi');
+
+  gambarPekerja(s.pekerja);
+  // Dengan beberapa pekerja, tombolnya ada di tiap baris pekerja.
+  const banyak = (s.pekerja || []).length > 1;
+  $('tombol-login').classList.toggle('sembunyi',
+      banyak || s.keadaan !== 'menunggu-login');
+  $('tombol-berhenti').classList.toggle('sembunyi', s.keadaan !== 'berjalan');
+
+  if (s.hasil.length){
+    $('kartu-hasil').classList.remove('sembunyi');
+    hasilTerakhir = s.hasil;
+    gambarTabel();
+  }
+  if (s.berkas_hasil){
+    $('berkas-hasil').textContent = 'Tersimpan di folder hasil\\' + s.berkas_hasil;
+  }
+  $('log').textContent = s.catatan.join('\n');
+  $('log').scrollTop = $('log').scrollHeight;
+
+  if (s.keadaan === 'selesai' || s.keadaan === 'gagal'){
+    $('tombol-mulai').disabled = false;
+    return false;
+  }
+  return true;
+}
+
+let gagalBerturut = 0;
+
+async function pantau(){
+  // Galat jaringan dulu menghentikan pemantauan diam-diam, dan halaman membeku
+  // pada keadaan terakhir tanpa memberi tahu apa pun. Tapi "sesi habis" BUKAN
+  // galat jaringan — ia sudah memindahkan halaman ke layar masuk, dan menyebutnya
+  // "tidak bisa menghubungi aplikasi" justru menyesatkan.
+  try {
+    const s = await (await panggil('/api/status')).json();
+    gagalBerturut = 0;
+    if (!tampilkan(s)) return;
+  } catch (e) {
+    if (String(e.message) === 'sesi habis'){
+      const kabar = $('kabar');
+      kabar.className = 'kabar tunggu';
+      kabar.textContent = 'Sesi berakhir — membuka halaman masuk…';
+      return;                       // panggil() sudah memindahkan halaman
+    }
+    gagalBerturut++;
+    const kabar = $('kabar');
+    kabar.className = 'kabar gagal';
+    const sebab = (e && e.message) ? ` (${e.message})` : '';
+    kabar.textContent = gagalBerturut < 4
+      ? `Aplikasi belum menjawab — mencoba lagi…${sebab}`
+      : 'Aplikasi berhenti menjawab. Halaman ini akan dimuat ulang sendiri; '
+      + 'kalau tetap begini, periksa jendela hitamnya dan buka aplikasi.bat lagi. '
+      + 'Pekerjaan yang sudah selesai tetap tersimpan di folder hasil.' + sebab;
+    // Halaman yang tertinggal dari aplikasi SEBELUMNYA tidak akan pernah pulih
+    // sendiri: sesinya sudah hangus dan pemantauannya berputar tanpa hasil.
+    // Memuat ulang mengembalikannya ke layar masuk, dan pekerja yang sedang
+    // menunggu tetap hidup di sisi aplikasi.
+    if (gagalBerturut === 6){ location.reload(); return; }
+  }
+  setTimeout(pantau, gagalBerturut ? 3000 : 1500);
+}
+
+awal();
+</script>
+</body>
+</html>

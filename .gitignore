@@ -1,0 +1,38 @@
+# =====================================================================
+#  CKG Robot - yang TIDAK PERNAH boleh masuk repo
+#  Folder-folder ini berisi DATA PESERTA (NIK, nama, hasil pemeriksaan),
+#  sesi login portal, atau akun. Jangan dihapus dari daftar ini.
+# =====================================================================
+
+# Data peserta & hasil kerja
+data/
+hasil/
+mentah/
+
+# Sesi browser portal (cookie login) - satu folder per pekerja
+.profil-browser*/
+
+# Akun aplikasi mode lokal (hash kata sandi)
+akun.dat
+
+# Cadangan & pembaruan otomatis
+cadangan-tampilan*/
+cadangan-versi/
+pembaruan/
+*.baru
+*.sementara
+
+# Skrip perapian/laporan khusus sekolah - menyebut berkas & murid sungguhan.
+# Hanya alat umum yang ikut repo.
+alat/*
+!alat/cap_versi.py
+!alat/buat_demo_web.py
+!alat/buat_admin_web.py
+!alat/buat_template_sekolah.py
+
+# Python & sistem
+__pycache__/
+*.pyc
+Thumbs.db
+desktop.ini
+~$*

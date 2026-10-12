@@ -1,0 +1,204 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Masuk — CKG Robot</title>
+<style>
+  /* Tampilan 3 Okt 2026. Cadangan sebelumnya: ..\cadangan-tampilan-20261003\ */
+  :root{
+    --latar:#f3f5f8; --garis:#e2e7ee; --garis-kuat:#cfd6e0; --teks:#18222e; --redup:#5d6878; --samar:#8a94a3;
+    --utama:#0f766e; --utama-tua:#0b5e58; --utama-muda:#e7f4f2;
+    --merah:#b42318; --merah-muda:#fdeeec; --merah-garis:#f4c0ba;
+    --kuning-muda:#fff6e5; --kuning-garis:#f3d59b;
+  }
+  *{box-sizing:border-box}
+  html,body{height:100%}
+  body{margin:0; background:var(--latar); color:var(--teks);
+       font:14.5px/1.55 "Segoe UI", system-ui, -apple-system, Roboto, sans-serif;
+       display:grid; place-items:center; padding:24px}
+  .kotak{width:100%; max-width:380px; background:#fff; border:1px solid var(--garis); border-radius:14px;
+         box-shadow:0 1px 3px rgba(16,24,40,.06), 0 12px 32px rgba(16,24,40,.08); padding:30px 30px 22px}
+  .lambang{width:46px; height:46px; border-radius:12px; background:var(--utama); display:grid; place-items:center;
+           margin-bottom:16px}
+  .lambang svg{width:25px; height:25px}
+  h1{margin:0; font-size:20px; font-weight:700; letter-spacing:-.01em}
+  .sub{margin:3px 0 22px; color:var(--redup); font-size:13.5px}
+  label{display:block; font-size:13px; font-weight:600; margin:0 0 6px}
+  input{width:100%; padding:10px 12px; font:inherit; font-size:14.5px; color:var(--teks); background:#fff;
+        border:1px solid var(--garis-kuat); border-radius:8px; outline:none; margin-bottom:14px;
+        transition:border-color .15s, box-shadow .15s}
+  input:hover{border-color:#b3bcc8}
+  input:focus{border-color:var(--utama); box-shadow:0 0 0 3px rgba(15,118,110,.15)}
+  button{width:100%; margin-top:4px; padding:11px 16px; font:inherit; font-weight:600; font-size:15px;
+         color:#fff; background:var(--utama); border:1px solid var(--utama); border-radius:8px; cursor:pointer;
+         transition:background .15s}
+  button:hover:not(:disabled){background:var(--utama-tua)}
+  button:disabled{background:#c9d1da; border-color:#c9d1da; cursor:not-allowed}
+  .kabar{margin-top:14px; padding:10px 12px; border-radius:8px; font-size:13px;
+         background:var(--merah-muda); border:1px solid var(--merah-garis); color:#7a1a12}
+  .kabar.petunjuk{background:var(--kuning-muda); border-color:var(--kuning-garis); color:#5c3a05}
+  .kabar code{font:12px Consolas, monospace; background:rgba(0,0,0,.06); padding:1px 5px; border-radius:5px}
+  .kaki{margin:22px 0 0; padding-top:14px; border-top:1px solid var(--garis); font-size:12px; color:var(--samar);
+        text-align:center}
+  .panduan{margin:16px 0 0; font-size:13px; color:var(--redup); text-align:center}
+  .panduan a{color:var(--utama); font-weight:600; text-decoration:none}
+  .panduan a:hover{text-decoration:underline}
+  .kabar.berhasil{background:#e8f6ee; border-color:#a9dcbd; color:#14532d}
+  .ganti{margin:14px 0 0; font-size:13px; color:var(--redup); text-align:center}
+  .ganti button{width:auto; margin:0; padding:0; background:none; border:none; color:var(--utama);
+                font-weight:600; font-size:13px; cursor:pointer}
+  .ganti button:hover{text-decoration:underline; background:none}
+  .dua{display:grid; grid-template-columns:1fr 1fr; gap:0 10px}
+  .lencana-online{display:inline-block; margin-left:6px; padding:1px 8px; border-radius:999px; font-size:11px;
+                  font-weight:600; vertical-align:3px; background:var(--utama-muda); color:var(--utama)}
+  .sembunyi{display:none}
+  @media (prefers-reduced-motion:reduce){*{transition:none !important}}
+</style>
+</head>
+<body>
+  <form class="kotak" id="borang" autocomplete="off">
+    <div class="lambang" aria-hidden="true">
+      <svg viewBox="0 0 24 24" fill="#fff"><path d="M9.5 3h5v6.5H21v5h-6.5V21h-5v-6.5H3v-5h6.5z"/></svg>
+    </div>
+    <h1>CKG Robot</h1>
+    <p class="sub">Input otomatis Cek Kesehatan Gratis. Masuk untuk melanjutkan.</p>
+
+    <label for="nama" id="label-nama">Nama pengguna</label>
+    <input id="nama" name="nama" type="text" autocapitalize="none" spellcheck="false"
+           autocomplete="username" required>
+
+    <label for="sandi">Kata sandi</label>
+    <input id="sandi" name="sandi" type="password" autocomplete="current-password" required>
+
+    <button type="submit" id="tombol">Masuk</button>
+    <div class="kabar sembunyi" id="kabar"></div>
+    <p class="ganti sembunyi" id="ke-daftar">Belum punya akun? <button type="button" id="buka-daftar">Daftar akun baru</button></p>
+    <p class="panduan"><a href="/panduan" target="_blank" rel="noopener">📖 Baca Panduan</a> — cara memasang dan memakai</p>
+    <p class="kaki" id="kaki">Akun dibuat lewat <b>buat_akun.bat</b> · dibuat oleh Muhammad Dava Aryoga (Pasukan Putih Lagoa)</p>
+  </form>
+
+  <!-- Pendaftaran petugas baru (mode login online saja). -->
+  <form class="kotak sembunyi" id="borang-daftar" autocomplete="off">
+    <div class="lambang" aria-hidden="true">
+      <svg viewBox="0 0 24 24" fill="#fff"><path d="M9.5 3h5v6.5H21v5h-6.5V21h-5v-6.5H3v-5h6.5z"/></svg>
+    </div>
+    <h1>Daftar akun baru</h1>
+    <p class="sub">Akun bisa dipakai setelah disetujui admin.</p>
+
+    <label for="d-nama">Nama lengkap</label>
+    <input id="d-nama" type="text" maxlength="100" required>
+    <label for="d-puskesmas">Puskesmas</label>
+    <input id="d-puskesmas" type="text" maxlength="100" placeholder="mis. Puskesmas Kelurahan Lagoa" required>
+    <label for="d-hp">No. HP / WhatsApp</label>
+    <input id="d-hp" type="tel" maxlength="30" required>
+    <label for="d-email">Email</label>
+    <input id="d-email" type="email" autocapitalize="none" spellcheck="false" autocomplete="email" required>
+    <div class="dua">
+      <div><label for="d-sandi">Kata sandi</label>
+        <input id="d-sandi" type="password" minlength="8" autocomplete="new-password" required></div>
+      <div><label for="d-ulang">Ulangi</label>
+        <input id="d-ulang" type="password" minlength="8" autocomplete="new-password" required></div>
+    </div>
+    <button type="submit" id="tombol-daftar">Kirim pendaftaran</button>
+    <div class="kabar sembunyi" id="kabar-daftar"></div>
+    <p class="ganti">Sudah punya akun? <button type="button" id="buka-masuk">Masuk</button></p>
+  </form>
+
+<script>
+const $ = (id) => document.getElementById(id);
+
+function kabar(teks, petunjuk, id){
+  const k = $(id || 'kabar');
+  k.className = 'kabar' + (petunjuk === true ? ' petunjuk' : petunjuk ? ' ' + petunjuk : '');
+  k.innerHTML = teks;
+  k.classList.toggle('sembunyi', !teks);
+}
+
+// Kalau belum ada akun sama sekali, memberi tahu cara membuatnya jauh lebih
+// berguna daripada membiarkan petugas menebak-nebak kata sandi yang tak ada.
+fetch('/api/perlu-akun').then(r => r.json()).then(d => {
+  if (d.mode === 'online'){
+    // Login online: akun dikelola admin lewat server, bukan buat_akun.bat.
+    $('label-nama').textContent = 'Email';
+    $('nama').type = 'email';
+    $('nama').autocomplete = 'email';
+    document.querySelector('#borang .sub').innerHTML =
+        'Masuk dengan akun CKG Robot.<span class="lencana-online">online</span>';
+    $('ke-daftar').classList.remove('sembunyi');
+    $('kaki').innerHTML = 'Versi ' + d.versi + ' · dibuat oleh Muhammad Dava Aryoga (Pasukan Putih Lagoa)';
+    return;
+  }
+  if (!d.ada_akun){
+    kabar('Belum ada akun di komputer ini. Tutup halaman ini, lalu klik ganda '
+        + '<code>buat_akun.bat</code> di folder aplikasi.', true);
+    $('tombol').disabled = true;
+  }
+}).catch(() => {});
+
+$('borang').onsubmit = async (e) => {
+  e.preventDefault();
+  $('tombol').disabled = true;
+  $('tombol').textContent = 'Memeriksa…';
+  kabar('');
+  try {
+    const r = await fetch('/api/masuk', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({nama: $('nama').value, sandi: $('sandi').value})});
+    const d = await r.json();
+    if (d.ok){ location.href = '/'; return; }
+    kabar(d.pesan || 'Gagal masuk.');
+  } catch (x) {
+    kabar('Aplikasi tidak menjawab. Pastikan jendela hitamnya masih terbuka.');
+  }
+  $('sandi').value = '';
+  $('sandi').focus();
+  $('tombol').disabled = false;
+  $('tombol').textContent = 'Masuk';
+};
+
+// ------------------------------------------------------------- pendaftaran
+function tampil(daftar){
+  $('borang').classList.toggle('sembunyi', daftar);
+  $('borang-daftar').classList.toggle('sembunyi', !daftar);
+  (daftar ? $('d-nama') : $('nama')).focus();
+}
+$('buka-daftar').onclick = () => tampil(true);
+$('buka-masuk').onclick = () => tampil(false);
+
+$('borang-daftar').onsubmit = async (e) => {
+  e.preventDefault();
+  if ($('d-sandi').value !== $('d-ulang').value){
+    kabar('Kata sandi dan ulangannya tidak sama.', false, 'kabar-daftar');
+    return;
+  }
+  const b = $('tombol-daftar');
+  b.disabled = true; b.textContent = 'Mengirim…';
+  kabar('', false, 'kabar-daftar');
+  try {
+    const r = await fetch('/api/daftar', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({nama: $('d-nama').value, puskesmas: $('d-puskesmas').value,
+                            no_hp: $('d-hp').value, email: $('d-email').value,
+                            sandi: $('d-sandi').value})});
+    const d = await r.json();
+    if (d.ok){
+      const email = $('d-email').value;
+      $('borang-daftar').reset();
+      tampil(false);
+      $('nama').value = email;
+      kabar(d.pesan, 'berhasil');
+      $('sandi').focus();
+    } else {
+      kabar(d.pesan || 'Pendaftaran gagal.', false, 'kabar-daftar');
+    }
+  } catch (x) {
+    kabar('Aplikasi tidak menjawab. Pastikan jendela hitamnya masih terbuka.', false, 'kabar-daftar');
+  }
+  b.disabled = false; b.textContent = 'Kirim pendaftaran';
+};
+
+$('nama').focus();
+</script>
+</body>
+</html>

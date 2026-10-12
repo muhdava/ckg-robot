@@ -1,0 +1,441 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Kelola Petugas — CKG Robot</title>
+<style>
+  /* Sama dengan antarmuka.html supaya terasa satu aplikasi. */
+  :root{
+    --latar:#f3f5f8; --kartu:#fff; --garis:#e2e7ee; --garis-kuat:#cfd6e0; --teks:#18222e; --redup:#5d6878;
+    --samar:#8a94a3; --utama:#0f766e; --utama-tua:#0b5e58; --utama-muda:#e7f4f2; --utama-garis:#b5ddd7;
+    --hijau:#15803d; --hijau-muda:#e8f6ee; --hijau-garis:#a9dcbd;
+    --kuning:#a16207; --kuning-muda:#fff6e5; --kuning-garis:#f3d59b;
+    --merah:#b42318; --merah-muda:#fdeeec; --merah-garis:#f4c0ba;
+    --abu-muda:#f1f4f7; --biru:#1d4ed8;
+  }
+  *{box-sizing:border-box}
+  body{margin:0; background:var(--latar); color:var(--teks);
+       font:14px/1.5 "Segoe UI", system-ui, -apple-system, Roboto, sans-serif}
+  header{background:#fff; border-bottom:1px solid var(--garis)}
+  .kop{max-width:1220px; margin:0 auto; padding:14px 24px; display:flex; align-items:center; gap:14px}
+  .lambang{width:40px; height:40px; border-radius:10px; background:var(--utama); display:grid; place-items:center; flex:none}
+  .lambang svg{width:22px; height:22px}
+  .kop h1{margin:0; font-size:17px}
+  .kop p{margin:0; font-size:12.5px; color:var(--redup)}
+  .kop a.kembali{margin-left:auto; font-size:13px; font-weight:600; color:var(--utama); text-decoration:none;
+                 border:1px solid var(--utama-garis); padding:6px 12px; border-radius:8px; background:#fff}
+  .kop a.kembali:hover{background:var(--utama-muda)}
+  .wadah{max-width:1220px; margin:22px auto 40px; padding:0 24px; display:flex; flex-direction:column; gap:18px}
+  .kartu{background:var(--kartu); border:1px solid var(--garis); border-radius:12px; padding:20px 22px;
+         box-shadow:0 1px 2px rgba(16,24,40,.04)}
+  .kartu h2{margin:0 0 4px; font-size:16px}
+  .kartu .bantu{margin:0 0 14px; color:var(--redup); font-size:13px}
+  details.kartu > summary{cursor:pointer; list-style:none; font-weight:700; font-size:16px}
+  details.kartu > summary::-webkit-details-marker{display:none}
+  details.kartu > summary::after{content:" ▸"; color:var(--samar)}
+  details.kartu[open] > summary::after{content:" ▾"}
+  .baris-isian{display:grid; grid-template-columns:repeat(auto-fit, minmax(190px, 1fr)); gap:12px; align-items:end}
+  label{display:block; font-size:12.5px; font-weight:600; margin:0 0 5px}
+  label small{font-weight:400; color:var(--samar)}
+  input, textarea, select{width:100%; padding:8px 10px; font:inherit; color:var(--teks); background:#fff;
+                          border:1px solid var(--garis-kuat); border-radius:8px; outline:none}
+  input:focus, textarea:focus, select:focus{border-color:var(--utama); box-shadow:0 0 0 3px rgba(15,118,110,.15)}
+  textarea{min-height:60px; resize:vertical}
+  button{font:inherit; font-weight:600; font-size:13px; padding:8px 14px; border-radius:8px; cursor:pointer;
+         border:1px solid var(--garis-kuat); background:#fff; color:var(--teks); white-space:nowrap}
+  button:hover:not(:disabled){background:var(--abu-muda)}
+  button.utama{background:var(--utama); border-color:var(--utama); color:#fff}
+  button.utama:hover:not(:disabled){background:var(--utama-tua)}
+  button.bahaya{color:var(--merah); border-color:var(--merah-garis)}
+  button.bahaya:hover:not(:disabled){background:var(--merah-muda)}
+  button.kecil{padding:4px 10px; font-size:12.5px}
+  button:disabled{opacity:.5; cursor:not-allowed}
+  .aksi-bawah{margin-top:14px; display:flex; gap:10px; align-items:center; flex-wrap:wrap}
+  .kabar{font-size:13px; padding:8px 12px; border-radius:8px}
+  .kabar.ok{background:var(--hijau-muda); border:1px solid var(--hijau-garis); color:#14532d}
+  .kabar.gagal{background:var(--merah-muda); border:1px solid var(--merah-garis); color:#7a1a12}
+
+  .saring{display:flex; gap:8px; flex-wrap:wrap; align-items:center; margin-bottom:14px}
+  .saring button[aria-pressed="true"]{background:var(--utama-muda); border-color:var(--utama-garis); color:var(--utama)}
+  .saring input{max-width:260px; margin-left:auto}
+  .hitung{display:inline-grid; place-items:center; min-width:20px; height:20px; padding:0 6px; margin-left:4px;
+          border-radius:999px; background:var(--kuning-muda); color:var(--kuning); font-size:11.5px}
+  table{width:100%; border-collapse:collapse; font-size:13px}
+  th{text-align:left; font-size:11.5px; text-transform:uppercase; letter-spacing:.04em; color:var(--samar);
+     font-weight:700; padding:8px 10px; border-bottom:1px solid var(--garis); background:var(--abu-muda)}
+  td{padding:10px; border-bottom:1px solid var(--garis); vertical-align:top}
+  tr.rinci td{background:#fafbfc; padding:14px 16px}
+  .nama b{display:block}
+  .nama span{color:var(--redup); font-size:12.5px}
+  .pil{display:inline-block; padding:2px 9px; border-radius:999px; font-size:12px; font-weight:600; border:1px solid}
+  .pil.menunggu{background:var(--kuning-muda); border-color:var(--kuning-garis); color:var(--kuning)}
+  .pil.aktif{background:var(--hijau-muda); border-color:var(--hijau-garis); color:var(--hijau)}
+  .pil.nonaktif{background:var(--abu-muda); border-color:var(--garis-kuat); color:var(--redup)}
+  .pil.admin{background:#eef2ff; border-color:#c7d2fe; color:#3730a3; margin-left:4px}
+  .tombol-baris{display:flex; gap:6px; flex-wrap:wrap}
+  .perangkat{display:flex; flex-direction:column; gap:6px; margin:6px 0 12px}
+  .perangkat div{display:flex; gap:12px; align-items:center; font-size:12.5px; background:#fff;
+                 border:1px solid var(--garis); border-radius:8px; padding:6px 10px}
+  .perangkat div span{flex:1; color:var(--redup)}
+  .kosong{color:var(--samar); text-align:center; padding:28px}
+  .sembunyi{display:none !important}
+  @media (max-width:860px){ .sembunyi-hp{display:none} }
+  @media (max-width:600px){ .sembunyi-hp-kecil{display:none} .tombol-baris{flex-direction:column; align-items:stretch} }
+</style>
+</head>
+<body>
+<header>
+  <div class="kop">
+    <div class="lambang" aria-hidden="true">
+      <svg viewBox="0 0 24 24" fill="#fff"><path d="M9.5 3h5v6.5H21v5h-6.5V21h-5v-6.5H3v-5h6.5z"/></svg>
+    </div>
+    <div>
+      <h1>Kelola Petugas</h1>
+      <p>CKG Robot · login online</p>
+    </div>
+    <a class="kembali" href="/">← Kembali ke aplikasi</a>
+  </div>
+</header>
+
+<div class="wadah">
+  <section class="kartu">
+    <h2>Petugas</h2>
+    <p class="bantu">Pendaftar baru berstatus <b>menunggu</b> sampai disetujui. Akun yang dinonaktifkan tidak bisa
+      masuk dan tidak bisa memulai pekerjaan baru.</p>
+    <div class="saring" id="saring">
+      <button data-saring="menunggu" aria-pressed="true">Menunggu<span class="hitung" id="n-menunggu">0</span></button>
+      <button data-saring="aktif" aria-pressed="false">Aktif</button>
+      <button data-saring="nonaktif" aria-pressed="false">Nonaktif</button>
+      <button data-saring="" aria-pressed="false">Semua</button>
+      <input id="cari" type="search" placeholder="Cari nama, email, puskesmas…">
+      <button type="button" id="tombol-cadangan" title="Unduh daftar semua petugas sebagai CSV (cadangan)">⬇ Unduh daftar</button>
+    </div>
+    <div class="kabar sembunyi" id="kabar-petugas"></div>
+    <div style="overflow-x:auto">
+      <table>
+        <thead><tr><th>Petugas</th><th class="sembunyi-hp-kecil">Puskesmas</th><th class="sembunyi-hp">No. HP</th><th>Status</th>
+          <th class="sembunyi-hp">Komputer</th><th class="sembunyi-hp">Terakhir masuk</th><th></th></tr></thead>
+        <tbody id="isi-tabel"><tr><td colspan="7" class="kosong">Memuat…</td></tr></tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="kartu" id="kartu-terbit">
+    <h2>Terbitkan pembaruan</h2>
+    <p class="bantu">Pilih paket buatan <b>buat_paket.bat</b>. Paket diunggah, lalu aplikasi semua petugas menampilkan
+      tombol <b>Perbarui sekarang</b> saat mereka masuk berikutnya. Paket yang sama juga yang diunduh dari website.</p>
+    <p class="bantu" id="terbit-sekarang" style="margin-top:-6px"></p>
+    <div class="baris-isian">
+      <div style="grid-column:1 / -1"><label for="t-paket">Paket <small id="t-folder"></small></label>
+        <select id="t-paket"></select></div>
+      <div style="grid-column:1 / -1"><label for="t-catatan">Catatan perubahan <small>(tampil di aplikasi petugas)</small></label>
+        <textarea id="t-catatan" maxlength="1000" placeholder="mis. Perbaikan form gula darah; penanganan 429 lebih cepat."></textarea></div>
+    </div>
+    <div class="aksi-bawah">
+      <button class="utama" type="button" id="tombol-terbit">Unggah &amp; terbitkan</button>
+      <div class="kabar sembunyi" id="kabar-terbit"></div>
+    </div>
+  </section>
+
+  <section class="kartu" id="kartu-pakai">
+    <h2>Pemakaian 14 hari terakhir</h2>
+    <p class="bantu">Jumlah peserta yang dikerjakan robot semua petugas (hanya angka, tanpa data peserta).
+      Lonjakan <b>gagal</b> di banyak petugas sekaligus biasanya tanda portal Kemenkes berubah.</p>
+    <div class="kabar sembunyi" id="kabar-pakai"></div>
+    <div style="overflow-x:auto"><table id="tabel-hari"></table></div>
+    <h2 style="margin-top:18px; font-size:14px">Per petugas</h2>
+    <div style="overflow-x:auto"><table id="tabel-petugas"></table></div>
+  </section>
+
+  <details class="kartu" id="kartu-buat">
+    <summary>Buatkan akun petugas</summary>
+    <p class="bantu" style="margin-top:6px">Akun yang dibuat di sini langsung aktif. Beri tahu petugasnya email dan
+      kata sandi ini; ia bisa langsung masuk.</p>
+    <form id="borang-buat" class="baris-isian" autocomplete="off">
+      <div><label for="b-nama">Nama lengkap</label><input id="b-nama" required maxlength="100"></div>
+      <div><label for="b-puskesmas">Puskesmas</label><input id="b-puskesmas" required maxlength="100"></div>
+      <div><label for="b-hp">No. HP</label><input id="b-hp" required maxlength="30"></div>
+      <div><label for="b-email">Email</label><input id="b-email" type="email" required></div>
+      <div><label for="b-sandi">Kata sandi <small>(min. 8)</small></label>
+        <input id="b-sandi" type="text" minlength="8" required></div>
+      <div><button class="utama" type="submit" id="tombol-buat">Buat &amp; aktifkan</button></div>
+    </form>
+    <div class="aksi-bawah"><div class="kabar sembunyi" id="kabar-buat"></div></div>
+  </details>
+
+  <details class="kartu" id="kartu-atur">
+    <summary>Pengaturan umum</summary>
+    <form id="borang-atur" style="margin-top:12px">
+      <div class="baris-isian">
+        <div><label for="a-versi">Versi minimal <small>(kosong = semua boleh)</small></label>
+          <input id="a-versi" placeholder="mis. 2026.10.08.0900" pattern="\d{4}\.\d{2}\.\d{2}(\.\d{4})?|"></div>
+        <div><label for="a-maks">Komputer per akun <small>(0 = tanpa batas)</small></label>
+          <input id="a-maks" type="number" min="0" max="50"></div>
+      </div>
+      <div style="margin-top:12px"><label for="a-umum">Pengumuman untuk semua petugas
+        <small>(tampil di atas halaman aplikasi; kosongkan untuk menghapus)</small></label>
+        <textarea id="a-umum" maxlength="500"></textarea></div>
+      <div class="aksi-bawah">
+        <button class="utama" type="submit">Simpan pengaturan</button>
+        <span class="bantu" style="margin:0" id="versi-ini"></span>
+        <div class="kabar sembunyi" id="kabar-atur"></div>
+      </div>
+    </form>
+  </details>
+</div>
+
+<script>
+const $ = (id) => document.getElementById(id);
+// Isian berasal dari pendaftar - siapa pun bisa mendaftar - jadi SELALU
+// di-escape sebelum masuk ke HTML.
+const esc = (s) => String(s ?? '').replace(/[&<>"']/g,
+    c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+let DATA = {petugas: [], pengaturan: {}};
+let SARING = 'menunggu';
+const BUKA = new Set();
+
+function kabar(id, teks, ok){
+  const k = $(id);
+  k.className = 'kabar ' + (ok ? 'ok' : 'gagal');
+  k.textContent = teks || '';
+  k.classList.toggle('sembunyi', !teks);
+}
+
+async function kirim(alamat, isi){
+  const r = await fetch(alamat, {method: isi ? 'POST' : 'GET',
+    headers: {'Content-Type':'application/json'}, body: isi ? JSON.stringify(isi) : undefined});
+  if (r.status === 401){ location.href = '/'; throw new Error('sesi habis'); }
+  return r.json().catch(() => ({ok:false, pesan:'Aplikasi tidak menjawab.'}));
+}
+
+function waktu(t){
+  if (!t) return '—';
+  const d = new Date(t);
+  return d.toLocaleDateString('id-ID', {day:'numeric', month:'short', year:'numeric'}) + ' ' +
+         d.toLocaleTimeString('id-ID', {hour:'2-digit', minute:'2-digit'});
+}
+
+// ------------------------------------------------------------- pemakaian
+async function muatPakai(){
+  const d = await kirim('/api/admin/pemakaian', {hari: 14});
+  if (!d.ok){
+    kabar('kabar-pakai', d.pesan && /function|tidak dikenal|404/i.test(d.pesan)
+      ? 'Rekap belum aktif - jalankan supabase\\tambahan-pemantauan.sql di Supabase.' : (d.pesan || 'Gagal memuat rekap.'));
+    return;
+  }
+  const n = (x) => Number(x || 0);
+  const hari = d.per_hari || [];
+  const persen = (g, tot) => tot ? Math.round(100 * g / tot) : 0;
+  const waspada = hari.slice(0, 2).find(h => {
+    const tot = n(h.tuntas) + n(h.beres_lain) + n(h.data_salah) + n(h.gagal);
+    return tot >= 20 && persen(n(h.gagal), tot) >= 30;
+  });
+  if (waspada){
+    const tot = n(waspada.tuntas) + n(waspada.beres_lain) + n(waspada.data_salah) + n(waspada.gagal);
+    kabar('kabar-pakai', `⚠ ${waspada.tanggal}: ${persen(n(waspada.gagal), tot)}% peserta GAGAL di ${waspada.petugas} `
+          + 'petugas. Kemungkinan portal berubah - periksa catatan proses dan hasil\\gagal\\ di salah satu komputer.');
+  }
+  $('tabel-hari').innerHTML = '<thead><tr><th>Tanggal</th><th>Petugas</th><th>Tuntas</th><th>Beres di tempat lain</th>'
+    + '<th>Data salah</th><th>Gagal</th><th>% gagal</th></tr></thead><tbody>'
+    + (hari.length ? hari.map(h => {
+        const tot = n(h.tuntas) + n(h.beres_lain) + n(h.data_salah) + n(h.gagal);
+        const p = persen(n(h.gagal), tot);
+        return `<tr><td>${esc(h.tanggal)}</td><td>${n(h.petugas)}</td><td>${n(h.tuntas)}</td><td>${n(h.beres_lain)}</td>`
+          + `<td>${n(h.data_salah)}</td><td>${n(h.gagal)}</td>`
+          + `<td style="${p >= 30 && tot >= 20 ? 'color:var(--merah);font-weight:700' : ''}">${p}%</td></tr>`;
+      }).join('') : '<tr><td colspan="7" class="kosong">Belum ada pemakaian tercatat.</td></tr>') + '</tbody>';
+  const org = d.per_petugas || [];
+  $('tabel-petugas').innerHTML = '<thead><tr><th>Petugas</th><th>Puskesmas</th><th>Tuntas</th><th>Beres lain</th>'
+    + '<th>Data salah</th><th>Gagal</th><th>Hari aktif</th><th>Terakhir</th><th>Versi</th></tr></thead><tbody>'
+    + (org.length ? org.map(o => `<tr><td class="nama"><b>${esc(o.nama) || '-'}</b><span>${esc(o.email)}</span></td>`
+        + `<td>${esc(o.puskesmas)}</td><td>${n(o.tuntas)}</td><td>${n(o.beres_lain)}</td><td>${n(o.data_salah)}</td>`
+        + `<td>${n(o.gagal)}</td><td>${n(o.hari_aktif)}</td><td>${esc(o.terakhir)}</td><td>${esc(o.versi)}</td></tr>`).join('')
+      : '<tr><td colspan="9" class="kosong">Belum ada.</td></tr>') + '</tbody>';
+}
+
+// --------------------------------------------------------------- cadangan
+// Daftar petugas sebagai CSV - catatan bila proyek Supabase bermasalah.
+// Kata sandi TIDAK ikut (memang tidak bisa dibaca siapa pun).
+$('tombol-cadangan').onclick = () => {
+  const kol = ['nama', 'email', 'puskesmas', 'no_hp', 'peran', 'status', 'maks_perangkat', 'dibuat', 'terakhir_masuk'];
+  const sel = (v) => '"' + String(v ?? '').replace(/"/g, '""') + '"';
+  const baris = [kol.concat(['komputer']).join(',')].concat((DATA.petugas || []).map(p =>
+    kol.map(k => sel(p[k])).concat([sel((p.perangkat || []).map(x => x.nama_komputer).join(' | '))]).join(',')));
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob(['\ufeff' + baris.join('\r\n')], {type: 'text/csv'}));
+  a.download = `petugas-ckg-robot-${new Date().toISOString().slice(0, 10)}.csv`;
+  a.click();
+  URL.revokeObjectURL(a.href);
+};
+
+async function muatPaket(){
+  const d = await kirim('/api/admin/paket-lokal');
+  if (!d.ok){ kabar('kabar-terbit', d.pesan || 'Gagal membaca daftar paket.'); return; }
+  $('t-folder').textContent = '(dari ' + d.folder + ')';
+  $('t-paket').innerHTML = d.paket.length
+    ? d.paket.map(p => `<option value="${esc(p.nama)}">${esc(p.nama)} — versi ${esc(p.versi || '?')} · `
+                     + `${Math.round(p.ukuran / 1024)} KB · ${esc(p.waktu)}</option>`).join('')
+    : '<option value="">(belum ada paket — jalankan buat_paket.bat dulu)</option>';
+  $('tombol-terbit').disabled = !d.paket.length;
+}
+
+function gambarTerbit(s){
+  $('terbit-sekarang').innerHTML = s.versi_terbaru
+    ? `Sedang diterbitkan: <b>versi ${esc(s.versi_terbaru)}</b> · ${Math.round((s.ukuran_terbaru || 0) / 1024)} KB · `
+      + `${waktu(s.diterbitkan)}${s.catatan_terbaru ? ' — ' + esc(s.catatan_terbaru) : ''}`
+    : 'Belum ada versi yang diterbitkan.';
+}
+
+$('tombol-terbit').onclick = async () => {
+  const berkas = $('t-paket').value;
+  if (!berkas) return;
+  if (!confirm(`Terbitkan ${berkas}? Semua petugas akan ditawari pembaruan ke paket ini.`)) return;
+  const b = $('tombol-terbit');
+  b.disabled = true; b.textContent = 'Mengunggah…';
+  const d = await kirim('/api/admin/terbitkan', {berkas, catatan: $('t-catatan').value});
+  b.disabled = false; b.textContent = 'Unggah & terbitkan';
+  kabar('kabar-terbit', d.ok ? d.pesan : (d.pesan || 'Gagal menerbitkan.'), d.ok);
+  if (d.ok){ $('t-catatan').value = ''; await muat(); }
+};
+
+async function muat(){
+  const d = await kirim('/api/admin/daftar', {});
+  if (!d.ok){ kabar('kabar-petugas', d.pesan || 'Gagal memuat daftar petugas.'); return; }
+  DATA = d;
+  const s = d.pengaturan || {};
+  $('a-versi').value = s.versi_minimal || '';
+  $('a-maks').value = s.maks_perangkat ?? 2;
+  $('a-umum').value = s.pengumuman || '';
+  gambarTerbit(s);
+  const menunggu = d.petugas.filter(p => p.status === 'menunggu').length;
+  $('n-menunggu').textContent = menunggu;
+  // Pertama dibuka & tak ada yang menunggu: langsung tampilkan semua petugas.
+  if (!muat.sudah && !menunggu) pilihSaring('');
+  muat.sudah = true;
+  gambar();
+}
+
+function gambar(){
+  const cari = $('cari').value.trim().toLowerCase();
+  const umum = (DATA.pengaturan || {}).maks_perangkat ?? 2;
+  const baris = DATA.petugas.filter(p => (!SARING || p.status === SARING) &&
+      (!cari || [p.nama, p.email, p.puskesmas, p.no_hp].join(' ').toLowerCase().includes(cari)));
+  if (!baris.length){
+    $('isi-tabel').innerHTML = `<tr><td colspan="7" class="kosong">${
+        SARING === 'menunggu' && !cari ? 'Tidak ada pendaftaran yang menunggu.' : 'Tidak ada petugas.'}</td></tr>`;
+    return;
+  }
+  $('isi-tabel').innerHTML = baris.map(p => {
+    const batas = p.maks_perangkat ?? umum;
+    const tombol = [];
+    if (p.status !== 'aktif') tombol.push(`<button class="kecil utama" data-aksi="aktif" data-id="${esc(p.id)}">${
+        p.status === 'menunggu' ? 'Setujui' : 'Aktifkan'}</button>`);
+    if (p.status !== 'nonaktif') tombol.push(`<button class="kecil bahaya" data-aksi="nonaktif" data-id="${esc(p.id)}">${
+        p.status === 'menunggu' ? 'Tolak' : 'Nonaktifkan'}</button>`);
+    tombol.push(`<button class="kecil" data-aksi="rinci" data-id="${esc(p.id)}">${BUKA.has(p.id) ? 'Tutup' : 'Lainnya'}</button>`);
+    let html = `<tr>
+      <td class="nama"><b>${esc(p.nama) || '<i>(tanpa nama)</i>'}${p.peran === 'admin' ? '<span class="pil admin">admin</span>' : ''}</b>
+          <span>${esc(p.email)}</span></td>
+      <td class="sembunyi-hp-kecil">${esc(p.puskesmas)}</td>
+      <td class="sembunyi-hp">${esc(p.no_hp)}</td>
+      <td><span class="pil ${esc(p.status)}">${esc(p.status)}</span></td>
+      <td class="sembunyi-hp">${p.perangkat.length}${batas ? ' / ' + batas : ''}</td>
+      <td class="sembunyi-hp">${waktu(p.terakhir_masuk)}</td>
+      <td><div class="tombol-baris">${tombol.join('')}</div></td></tr>`;
+    if (BUKA.has(p.id)){
+      const perangkat = p.perangkat.length ? p.perangkat.map(d => `<div>
+          <b>${esc(d.nama_komputer) || 'komputer'}</b><span>versi ${esc(d.versi) || '?'} · terakhir ${waktu(d.terakhir)}</span>
+          <button class="kecil bahaya" data-aksi="lepas" data-id="${esc(d.id)}" data-nama="${esc(d.nama_komputer)}">Lepas</button></div>`).join('')
+        : '<div><span>Belum pernah masuk dari komputer mana pun.</span></div>';
+      html += `<tr class="rinci"><td colspan="7">
+        <label>Komputer yang dipakai</label><div class="perangkat">${perangkat}</div>
+        <div class="tombol-baris">
+          <button class="kecil" data-aksi="sandi" data-id="${esc(p.id)}">Ganti kata sandi</button>
+          <button class="kecil" data-aksi="peran" data-id="${esc(p.id)}">${p.peran === 'admin' ? 'Jadikan petugas biasa' : 'Jadikan admin'}</button>
+          <button class="kecil" data-aksi="batas" data-id="${esc(p.id)}">Batas komputer: ${p.maks_perangkat ?? 'ikut umum (' + umum + ')'}</button>
+        </div></td></tr>`;
+    }
+    return html;
+  }).join('');
+}
+
+$('isi-tabel').onclick = async (e) => {
+  const b = e.target.closest('button[data-aksi]');
+  if (!b) return;
+  const id = b.dataset.id, aksi = b.dataset.aksi;
+  const p = DATA.petugas.find(x => x.id === id);
+  let hasil;
+  if (aksi === 'rinci'){
+    BUKA.has(id) ? BUKA.delete(id) : BUKA.add(id);
+    gambar(); return;
+  }
+  if (aksi === 'aktif'){
+    hasil = await kirim('/api/admin/ubah', {id, status: 'aktif'});
+  } else if (aksi === 'nonaktif'){
+    if (!confirm(`${p.status === 'menunggu' ? 'Tolak pendaftaran' : 'Nonaktifkan akun'} ${p.nama || p.email}?`)) return;
+    hasil = await kirim('/api/admin/ubah', {id, status: 'nonaktif'});
+  } else if (aksi === 'lepas'){
+    if (!confirm(`Lepas komputer "${b.dataset.nama || 'ini'}" dari akun? Slotnya kosong lagi, dan komputer itu `
+                 + 'harus mendaftar ulang saat masuk berikutnya.')) return;
+    hasil = await kirim('/api/admin/lepas-perangkat', {id: Number(id)});
+  } else if (aksi === 'sandi'){
+    const s = prompt(`Kata sandi baru untuk ${p.nama || p.email} (minimal 8 karakter):`);
+    if (s === null) return;
+    hasil = await kirim('/api/admin/ganti-sandi', {id, sandi: s});
+    if (hasil.ok) hasil.pesan = 'Kata sandi diganti. Beri tahu petugasnya.';
+  } else if (aksi === 'peran'){
+    const jadi = p.peran === 'admin' ? 'petugas' : 'admin';
+    if (!confirm(`Jadikan ${p.nama || p.email} ${jadi === 'admin' ? 'ADMIN (bisa mengelola semua petugas)' : 'petugas biasa'}?`)) return;
+    hasil = await kirim('/api/admin/ubah', {id, peran: jadi});
+  } else if (aksi === 'batas'){
+    const s = prompt('Batas komputer untuk akun ini (angka; 0 = tanpa batas; kosong = ikut pengaturan umum):',
+                     p.maks_perangkat ?? '');
+    if (s === null) return;
+    hasil = await kirim('/api/admin/ubah', {id, maks_perangkat: s.trim() === '' ? -1 : Math.max(0, parseInt(s, 10) || 0)});
+  }
+  kabar('kabar-petugas', hasil.ok ? (hasil.pesan || 'Tersimpan.') : (hasil.pesan || 'Gagal.'), hasil.ok);
+  if (hasil.ok) await muat();
+};
+
+function pilihSaring(nilai){
+  SARING = nilai;
+  document.querySelectorAll('#saring button').forEach(x =>
+      x.setAttribute('aria-pressed', String(x.dataset.saring === nilai)));
+}
+$('saring').onclick = (e) => {
+  const b = e.target.closest('button[data-saring]');
+  if (!b) return;
+  pilihSaring(b.dataset.saring);
+  gambar();
+};
+$('cari').oninput = gambar;
+
+$('borang-buat').onsubmit = async (e) => {
+  e.preventDefault();
+  const b = $('tombol-buat');
+  b.disabled = true;
+  const d = await kirim('/api/admin/buat-akun', {nama: $('b-nama').value, puskesmas: $('b-puskesmas').value,
+      no_hp: $('b-hp').value, email: $('b-email').value, sandi: $('b-sandi').value});
+  b.disabled = false;
+  kabar('kabar-buat', d.ok ? `Akun ${$('b-email').value} dibuat dan aktif.` : (d.pesan || 'Gagal membuat akun.'), d.ok);
+  if (d.ok){ $('borang-buat').reset(); await muat(); }
+};
+
+$('borang-atur').onsubmit = async (e) => {
+  e.preventDefault();
+  const d = await kirim('/api/admin/pengaturan', {versi_minimal: $('a-versi').value.trim(),
+      maks_perangkat: parseInt($('a-maks').value, 10) || 0, pengumuman: $('a-umum').value});
+  kabar('kabar-atur', d.ok ? 'Pengaturan tersimpan.' : (d.pesan || 'Gagal menyimpan.'), d.ok);
+  if (d.ok) await muat();
+};
+
+fetch('/api/awal').then(r => r.json()).then(d => {
+  $('versi-ini').textContent = 'Versi aplikasi di komputer ini: ' + d.versi;
+}).catch(() => {});
+muat();
+muatPaket();
+muatPakai();
+</script>
+</body>
+</html>

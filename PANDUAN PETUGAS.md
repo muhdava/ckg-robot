@@ -1,0 +1,201 @@
+# Panduan Petugas — CKG Robot
+
+Alat ini mengisi pendaftaran dan pemeriksaan CKG di portal Sehat Indonesiaku
+secara otomatis. Kamu tetap yang login dan yang menentukan datanya; robot yang
+mengetik dan mengklik.
+
+---
+
+## BAGIAN 1 — Pemasangan (sekali saja)
+
+**1. Pasang Python**
+
+Unduh dari <https://www.python.org/downloads/> lalu pasang.
+Saat memasang, **centang "Add Python to PATH"** di layar pertama.
+
+> Ini langkah yang paling sering terlewat. Kalau tidak dicentang, langkah
+> berikutnya akan bilang "Python tidak ditemukan" — pasang ulang saja dan
+> centang kotaknya.
+
+**2. Keluarkan berkas dari ZIP**
+
+Letakkan foldernya di tempat tetap, misalnya `D:\CKG Robot`.
+**Jangan dijalankan dari dalam ZIP.**
+
+**3. Klik ganda `pasang.bat`**
+
+Butuh internet, sekitar 2–5 menit. Tunggu sampai muncul tulisan **SELESAI**.
+
+Chrome tidak wajib. Kalau ada, itu yang dipakai; kalau tidak, browser cadangan
+yang dipasang di langkah ini.
+
+**4. Akun CKG Robot**
+
+Aplikasi memakai **login online**: akunnya sama dengan akun website
+**ckg-robot.netlify.app** (email + kata sandi). Belum punya? Daftar di website
+atau lewat **Daftar akun baru** di halaman masuk aplikasi, lalu tunggu
+**disetujui admin**. `buat_akun.bat` tidak dipakai lagi.
+
+> Akun ini **bukan** akun portal Sehat Indonesiaku. Lupa kata sandi? Minta
+> admin menggantinya dari halaman Kelola Petugas.
+
+**Versi baru** dipasang dari dalam aplikasi: tekan **Perbarui sekarang** bila
+muncul pita "Versi baru tersedia". Tidak perlu mengunduh ZIP lagi.
+
+---
+
+## BAGIAN 2 — Menyiapkan data peserta
+
+**5. Ambil template**
+
+Buka folder `template\`, pilih yang sesuai:
+
+| Template | Untuk |
+|---|---|
+| `Template CKG SEKOLAH.xlsx` | murid SD sampai SMA |
+| `Template DEWASA-LANSIA (parameter).xlsx` | dewasa/lansia, belum ada angka hasil ukur |
+| `Template DEWASA-LANSIA (real data).xlsx` | dewasa/lansia, angka hasil ukur sudah ada |
+
+**6. Isi di Excel, lalu simpan sebagai CSV**
+
+`File → Save As → CSV (Comma delimited)`, taruh berkasnya di folder **`data\`**.
+
+Yang perlu diperhatikan:
+
+* **Jangan mengubah urutan atau jumlah kolom.** Program mengenali data dari
+  posisi kolomnya, bukan dari judulnya.
+* Kolom NIK dan Tanggal Lahir sudah diatur formatnya — NIK 16 digit tidak akan
+  terpotong, dan tanggal apa pun bentuk ketikannya akan menjadi `dd/mm/yyyy`.
+* Untuk CKG Sekolah, **nama sekolah harus sama persis dengan tulisan di
+  portal**. Contoh: portal menulis `SMP KELUARGA KUSUMA MARSUDIRINI`, bukan
+  nama panjang dengan "Tanjung Priok" di belakangnya.
+
+---
+
+## BAGIAN 3 — Menjalankan (setiap kali dipakai)
+
+**7. Klik ganda `aplikasi.bat`**
+
+Jendela hitam terbuka — **jangan ditutup selama bekerja** — dan halaman
+aplikasi muncul sendiri di browser. Masuk dengan akun yang tadi kamu buat.
+
+**8. Pilih pekerjaannya**
+
+| Pilihan | Isi |
+|---|---|
+| **Jenis CKG** | biarkan "Ikuti isi berkas" — program mengenalinya sendiri |
+| **Alur CKG** | tiga pilihan — lihat tabel di bawah |
+| **Berkas data** | berkas CSV yang tadi kamu taruh di `data\` |
+| **Nomor data** | satu nomor, rentang (`1-1000`), atau gabungan (`1-500, 640`) |
+| **Jumlah pekerja** | 1 browser. Naikkan hanya bila kamu punya beberapa akun puskesmas |
+
+> **Beberapa pekerja sekaligus.** Tiap pekerja membuka browsernya sendiri dan
+> harus **dilogin sendiri dengan akun puskesmas yang BERBEDA** — sesi login
+> menempel pada browsernya. Datanya dibagi berselang-seling, jadi tidak ada
+> peserta yang dikerjakan dua kali.
+> Jangan memakai satu akun yang sama di dua browser: belum pernah diuji, dan
+> risikonya pendaftaran ganda.
+
+**Memilih alur:**
+
+| Alur | Untuk berkas seperti apa |
+|---|---|
+| **Pendaftaran → Selesai** | semuanya peserta baru. Yang dijawab portal "sudah menerima layanan" dilewati begitu saja — paling cepat |
+| **Pendaftaran → Pelayanan → Selesai** | bercampur: sebagian belum terdaftar, sebagian sudah hadir tapi formnya belum diisi. Yang "sudah menerima layanan" **dilanjutkan** lewat halaman pelayanan. Lebih lambat ±30 detik untuk tiap peserta seperti itu |
+| **Pelayanan → Selesai** | semuanya sudah terdaftar, tinggal diisi formnya. Tanpa pendaftaran sama sekali. Peserta yang **formnya sudah diinput** langsung dilewati tanpa dibuka |
+
+> Portal menjawab "sudah menerima layanan" untuk **dua keadaan berbeda**:
+> peserta yang pemeriksaannya memang tuntas, dan peserta yang baru hadir tapi
+> formnya kosong. Dari halaman pendaftaran keduanya tidak bisa dibedakan —
+> hanya halaman pelayanan yang tahu. Itulah kenapa perlakuannya jadi pilihan.
+
+**9. Tekan "Buka browser & mulai"**
+
+Jendela browser baru terbuka di halaman portal.
+
+**10. Login sendiri di jendela itu**
+
+Pakai akun puskesmasmu. Ada captcha, jadi harus dikerjakan manusia.
+Sesudah masuk, kembali ke halaman aplikasi dan tekan
+**"Saya sudah login — lanjutkan"**.
+
+**11. Tunggu**
+
+Kemajuan, tabel hasil, dan catatan prosesnya berjalan sendiri.
+Satu peserta penuh sekitar **3–4 menit**.
+
+**12. Unduh hasilnya**
+
+Di atas tabel ada rekap jumlah tiap status. Tekan **⬇ Unduh Excel** untuk
+mengunduhnya: lembar **Hasil** berisi No, NIK, Nama, Tanggal Lahir, dan Status
+dengan warna; lembar **Rekap** berisi jumlah tiap status dan totalnya.
+
+> **Unduh dulu sebelum menjalankan batch berikutnya.** Tabel hasil diganti
+> setiap kali kamu menekan "Buka browser & mulai" lagi. Riwayat lengkapnya
+> tetap tersimpan sebagai CSV di folder `hasil\`.
+
+---
+
+## Arti status di tabel hasil
+
+| Status | Warna | Artinya |
+|---|---|---|
+| `tuntas` | hijau | selesai penuh, semua form terisi |
+| `sudah_pelayanan` | kelabu | portal menyatakan peserta sudah dilayani |
+| `ckg_sekolah` | hijau kebiruan | sudah diperiksa lewat jalur CKG Sekolah, bukan CKG Umum |
+| `puskesmas_berbeda` | ungu | sudah diperiksa PUSKESMAS LAIN — keterangannya menyebut puskesmas dan tanggalnya |
+| `sekolah_berbeda` | ungu | sudah selesai diperiksa, tapi di SEKOLAH LAIN — keterangannya menyebut sekolah, kelas, dan puskesmasnya |
+| `kelas_berbeda` | ungu | sekolahnya sama, kelasnya yang berbeda dari yang tertulis di CSV |
+| `tidak_valid` | oranye | portal menolak datanya |
+| `tidak_ditemukan` | kuning | tidak ada di daftar — periksa NIK, sekolah, atau kelasnya |
+| `gagal_...` | merah | ketemu tapi langkahnya gagal; boleh dijalankan ulang |
+
+Yang hijau, kelabu, dan ungu tidak akan dikerjakan lagi kalau kamu menjalankan
+ulang — untuk yang ungu, muridnya memang sudah diperiksa; yang perlu dibetulkan
+nama sekolah/kelas di datanya. Yang merah dan kuning akan dicoba lagi.
+
+---
+
+## Aturan yang menghemat waktumu
+
+**Satu kali jalan boleh sampai ratusan peserta** (sudah diuji sampai 1000).
+Batch berhenti sendiri setelah 3 kegagalan beruntun. Tutup browsernya, jalankan
+lagi dengan **rentang yang sama** — yang sudah selesai dilewati otomatis.
+
+**Jangan utak-atik jendela browser yang sedang dikerjakan robot.**
+Memindahkan, menutup, atau menumpuknya dengan jendela lain bisa membuat
+langkahnya meleset.
+
+**Komputermu harus menyala selama pekerjaan berjalan.**
+Robotnya jalan di komputermu, bukan di server.
+
+---
+
+## Kalau ada masalah
+
+| Yang terjadi | Lakukan |
+|---|---|
+| "Python tidak ditemukan" | Pasang ulang Python, centang "Add Python to PATH" |
+| "Playwright belum terpasang" | Jalankan `pasang.bat` sekali lagi |
+| Tombol Unduh Excel bilang openpyxl belum ada | Jalankan `pasang.bat` sekali lagi |
+| Halaman aplikasi tidak terbuka sendiri | Buka browser, ketik `localhost:8765` |
+| Diminta login terus | Jangan tutup jendela browsernya di tengah batch |
+| Lupa kata sandi akun CKG Robot | Minta admin menggantinya (Kelola Petugas) |
+| "Akun belum disetujui admin" | Kabari admin, lalu masuk lagi setelah disetujui |
+| "Versi ini sudah tidak boleh dipakai" | Tekan **Perbarui sekarang** di pita merah |
+| "Terlalu banyak percobaan" | Salah sandi 5 kali. Tunggu 5 menit |
+| Banyak peserta `tidak_ditemukan` | Periksa NIK-nya; untuk murid, periksa juga nama sekolah dan kelasnya |
+| Batch berhenti sendiri | Normal setelah 3 gagal beruntun. Tutup browser, jalankan lagi dengan rentang sama |
+
+Kalau ada peserta yang gagal dan sebabnya tidak jelas, tangkapan layar saat
+gagal tersimpan otomatis di `hasil\gagal\` — kirimkan berkas itu beserta
+catatan prosesnya.
+
+---
+
+## Yang TIDAK dilakukan alat ini
+
+* Tidak menyimpan atau membaca kata sandimu. Login selalu kamu sendiri.
+* Tidak mengubah data yang sudah ada di portal selain yang memang diisi.
+* Tidak bisa dijalankan dari komputer lain — halaman aplikasi hanya mengendalikan
+  robot yang berjalan di komputer tempat `aplikasi.bat` dijalankan.

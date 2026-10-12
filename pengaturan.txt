@@ -1,0 +1,135 @@
+# =====================================================================
+#  PENGATURAN CKG DEWASA/LANSIA  —  versi Playwright
+# =====================================================================
+#
+#  Ubah nilai di berkas ini saja. JANGAN menyunting berkas .py.
+#  Baris yang diawali # adalah catatan dan diabaikan.
+#  Nilai ya/tidak boleh ditulis: ya, tidak, true, false, 1, 0.
+#
+#  Kalau ada yang salah tulis, program tidak berhenti — ia memakai nilai
+#  bawaan dan memberi tahu baris mana yang bermasalah saat mulai.
+# ---------------------------------------------------------------------
+
+
+# Berkas CSV berisi data peserta. Cukup nama berkasnya bila berada di
+# folder yang sama dengan berkas ini.
+berkas csv = datackg_smp_kusuma.csv
+
+# Tahap yang dijalankan:
+#   penuh       = daftar -> konfirmasi hadir -> mulai -> isi semua form
+#                 -> selesaikan layanan          (dipakai sehari-hari)
+#   pendaftaran = mendaftar saja
+#   konfirmasi  = peserta sudah punya tiket, lanjut konfirmasi + mulai
+#   isi         = peserta sudah "Sedang Pemeriksaan", isi formnya saja
+tahap = penuh
+
+
+# Kategori peserta:
+#   auto     = ikuti isi berkas CSV-nya (DISARANKAN)
+#   dewasa   = paksa alur individu (Dewasa/Lansia)
+#   sekolah  = paksa alur murid (CKG Sekolah)
+# Biarkan "auto" saja: berkas sekolah otomatis memakai alur sekolah, jadi
+# tidak mungkin salah pasang.
+kategori = auto
+
+
+# Batas bawaan bila saat ditanya "Nomor data" kamu langsung menekan Enter.
+# Sehari-hari tidak perlu diubah — nomor data ditanyakan setelah login.
+baris awal = 1
+jumlah data = 1
+
+
+# ---------------------------------------------------------------------
+#  Pengaman
+# ---------------------------------------------------------------------
+
+# ya  = jalankan semua langkah TAPI berhenti sebelum mendaftarkan,
+#       sehingga tidak ada data peserta yang tercatat di portal.
+# tidak = pendaftaran sungguhan.
+mode uji = tidak
+
+# Tekan "Selesaikan Layanan" setelah semua form target terisi.
+# Tombol itu di portal selalu aktif walau masih ada pemeriksaan kosong,
+# jadi program hanya menekannya bila pembacaan status tiap baris
+# menyatakan semuanya sudah selesai.
+selesaikan layanan = ya
+
+# Lewati peserta yang pada run sebelumnya sudah tercatat selesai.
+# Inilah yang membuat batch panjang aman dijalankan ulang setelah putus:
+# tinggal jalankan lagi dengan rentang yang sama.
+lewati sudah selesai = ya
+
+# Jalankan lagi peserta yang sebelumnya DITOLAK portal (tidak valid).
+# Biarkan 'tidak': portal akan menolak data yang sama dengan kalimat yang
+# sama. Ubah ke 'ya' hanya sesudah datanya dibetulkan (NIK tetap sama).
+ulang tidak valid = tidak
+
+
+# ---------------------------------------------------------------------
+#  Lanjutan — jarang diubah
+# ---------------------------------------------------------------------
+
+# Batas berapa browser boleh dibuka sekaligus - itulah pilihan yang muncul di
+# kotak "Jumlah pekerja" pada halaman aplikasi.
+#
+# TIAP BROWSER BUTUH AKUN PUSKESMAS SENDIRI yang kamu login-kan satu per satu.
+# Jadi isi paling banyak sebanyak akun yang benar-benar kamu punya; menaikkan
+# angka ini tidak menambah akun. Tiap browser tambahan juga memakan memori dan
+# menambah beban ke portal.
+maks pekerja = 10
+
+# Berapa kali daftar layanan disapu ulang untuk mengejar form yang gagal.
+sweep putaran = 3
+
+# Berapa kali halaman daftar layanan dimuat ulang bila isinya tidak ter-render.
+# Portal kadang menampilkan daftar kosong; refresh membereskannya. Hanya
+# dijalankan saat memang kosong, jadi tidak memperlambat peserta normal.
+refresh daftar = 3
+
+# Batas jumlah form per peserta; 0 = tanpa batas.
+# Isi 1 bila ingin mencoba satu form dulu.
+maks form = 0
+
+# tidak = browser berjalan tersembunyi. Biarkan "ya" supaya bisa diawasi,
+# dan karena login harus kamu lakukan sendiri di jendela itu.
+tampilkan browser = ya
+
+# Hentikan batch bila sekian peserta gagal BERTURUT-TURUT.
+# Itu gejala khas browser yang sudah melambat: langkah yang tadinya
+# lancar mulai gagal terus. Tutup browser, jalankan lagi dengan rentang
+# yang sama - yang sudah selesai dilewati sendiri. 0 = jangan berhenti.
+berhenti setelah gagal = 3
+
+
+# Dipakai bila kolom No HP peserta kosong.
+nomor hp cadangan = 81210076973
+
+# Berapa lama menunggu nomor tiket terbit sesudah "Daftarkan dengan NIK" (ms).
+# Portal kadang lama di sini. Penantiannya berhenti begitu tiket muncul, jadi
+# angka besar tidak memperlambat kasus normal.
+tunggu tiket = 45000
+
+# Berapa lama menunggu peserta yang baru didaftarkan muncul di daftar (ms).
+tunggu muncul = 12000
+
+# CKG Sekolah: tekan "Cek NIK" saat mendaftarkan murid, atau ketik seluruh
+# identitasnya dari CSV? "tidak" = ketik sendiri semuanya (bawaan sekarang).
+# Ini TIDAK berlaku untuk Dewasa/Lansia - di sana Cek NIK tetap dipakai.
+cek nik sekolah = tidak
+
+# Berapa kali satu peserta diulang bila yang bermasalah ternyata PORTALNYA
+# - tenggat habis, halaman menggantung, modal yang tidak merespons. Boleh
+# 3 sampai 5. Data yang memang salah (tidak_valid, tidak_ditemukan) TIDAK
+# pernah diulang: jawabannya akan sama berapa kali pun dicoba.
+percobaan ulang = 3
+
+# Jeda sebelum mencoba lagi bila yang gagal ternyata JARINGAN (detik).
+# Galat jaringan tidak sembuh dalam sepersekian detik. Diakhiri lebih
+# awal kalau koneksinya sudah pulih. Isi 0 untuk mematikan jeda ini.
+jeda galat jaringan = 30
+
+# Form yang boleh DIISI ULANG walau portal sudah menandainya selesai - hanya
+# berlaku pada alur "Pelayanan -> Selesai (sapu)". Dipisahkan koma.
+# Menimpa jawaban yang sudah ada tidak bisa dibatalkan, jadi isi seperlunya
+# saja - dan kosongkan lagi kalau perbaikannya sudah selesai.
+timpa form = kesehatan jiwa
