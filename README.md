@@ -146,6 +146,10 @@ SQL Supabase dijalankan sekali, berurutan: `skema.sql` → `tambahan-website.sql
 
 ## Riwayat perubahan
 
+### 2026.10.12.2131
+- **Panduan PDF** (19 halaman) diperbarui untuk Setup: langkah Setup bergambar, peringatan SmartScreen,
+  ikon & folder data, tabel masalah, dan cara admin mengunggah Setup.
+
 ### 2026.10.12.2121
 - **Setup.exe** untuk petugas baru: Python ikut dibundel, ikon & Start Menu, uninstall dari Control Panel.
   Dibuat otomatis oleh `buat_paket.bat` (Inno Setup 6), ~13 MB.
