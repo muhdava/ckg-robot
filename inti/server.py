@@ -43,6 +43,7 @@ import akun
 import akun_online
 import config
 import pembaruan
+import pintasan
 import konversi
 import layanan
 import jendela
@@ -1504,6 +1505,23 @@ def _layani() -> None:
         s.server_close()
 
 
+def _atur_jendela(kecilkan: bool) -> None:
+    """
+    Kecilkan jendela hitam ke taskbar setelah aplikasi siap (atau munculkan
+    lagi bila ada galat). Hanya bila dibuka lewat aplikasi.bat (CKG_KECILKAN):
+    yang menjalankan server.py langsung dari terminal tidak ikut dikecilkan.
+    """
+    if os.name != "nt" or not os.environ.get("CKG_KECILKAN"):
+        return
+    try:
+        import ctypes
+        h = ctypes.windll.kernel32.GetConsoleWindow()
+        if h:
+            ctypes.windll.user32.ShowWindow(h, 6 if kecilkan else 9)   # SW_MINIMIZE / SW_RESTORE
+    except Exception:
+        pass
+
+
 def main() -> None:
     alamat = f"http://localhost:{PORTA}"
     print("=" * 60)
@@ -1520,6 +1538,12 @@ def main() -> None:
         print(f"  Kalau memang ingin memakai yang sedang berjalan, buka {alamat}.")
         print("\n  PENTING: selama jendela lama masih terbuka, ia memakai kode")
         print("  versi lama - perbaikan yang baru dipasang TIDAK akan berlaku.")
+        # Paling sering: ikon CKG Robot diklik lagi padahal aplikasinya masih
+        # jalan (jendela hitamnya mengecil di taskbar). Halamannya dibukakan.
+        try:
+            webbrowser.open(alamat)
+        except Exception:
+            pass
         input("\nTekan Enter untuk menutup...")
         return
     # Dimulai ulang sesudah pembaruan: halaman yang sudah terbuka memuat ulang
@@ -1530,6 +1554,8 @@ def main() -> None:
         except Exception:
             pass
     threading.Thread(target=_pengirim_pemakaian, daemon=True).start()
+    threading.Thread(target=pintasan.pastikan_sekali, daemon=True).start()
+    _atur_jendela(kecilkan=True)
     try:
         _layani()
         if _mulai_ulang:
@@ -1549,6 +1575,7 @@ def main() -> None:
         print("\nDihentikan.")
     except Exception as e:
         _catat_galat("server berhenti", e)
+        _atur_jendela(kecilkan=False)
         print(f"\n[GAGAL] {type(e).__name__}: {e}")
         print(f"Keterangan lengkap ditulis ke hasil/galat-aplikasi.txt")
         input("Tekan Enter untuk menutup...")

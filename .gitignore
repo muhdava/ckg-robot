@@ -29,6 +29,13 @@ alat/*
 !alat/buat_demo_web.py
 !alat/buat_admin_web.py
 !alat/buat_template_sekolah.py
+!alat/buat_ikon.py
+
+# Python bawaan Setup.exe & cache pembuatnya, penanda shortcut
+python/
+pemasang/cache/
+.pintasan
+unins000.*
 
 # Python & sistem
 __pycache__/

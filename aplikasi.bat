@@ -1,7 +1,8 @@
 @echo off
 REM =====================================================================
 REM  CKG Robot - buka aplikasi
-REM  Klik ganda berkas ini. Halaman akan terbuka sendiri di browser.
+REM  Klik ganda ikon CKG Robot di Desktop (atau berkas ini). Halaman akan
+REM  terbuka sendiri di browser, dan jendela hitam ini mengecil ke taskbar.
 REM  JANGAN tutup jendela hitam ini selama aplikasi dipakai.
 REM =====================================================================
 setlocal
@@ -17,27 +18,46 @@ if exist "%~dp0aplikasi.bat.baru" (
     exit /b
 )
 
-where python >nul 2>&1
-if errorlevel 1 (
-    echo.
-    echo [BERHENTI] Python tidak ditemukan.
-    echo Jalankan pasang.bat sekali saja lebih dulu.
-    echo.
-    pause
-    exit /b 1
+title CKG Robot
+
+REM Python bawaan (dipasang Setup.exe) dipakai bila ada; selain itu Python
+REM yang terpasang di komputer.
+set "PY=python"
+if exist "%~dp0python\python.exe" set "PY=%~dp0python\python.exe"
+
+if "%PY%"=="python" (
+    where python >nul 2>&1
+    if errorlevel 1 (
+        echo.
+        echo [BERHENTI] Python tidak ditemukan.
+        echo Jalankan pasang.bat sekali saja lebih dulu.
+        echo.
+        pause
+        exit /b 1
+    )
 )
 
-python -c "import playwright" >nul 2>&1
+REM Pustaka belum lengkap (pemasangan pertama terputus, atau Setup dijalankan
+REM tanpa internet): dipasang sekarang, tidak perlu mencari pasang.bat.
+"%PY%" -c "import playwright, openpyxl" >nul 2>&1
 if errorlevel 1 (
     echo.
-    echo [BERHENTI] Playwright belum terpasang.
-    echo Jalankan pasang.bat sekali saja, lalu coba lagi.
+    echo Pustaka aplikasi belum lengkap - memasang sekarang.
+    echo Perlu internet, bisa beberapa menit. Jangan tutup jendela ini.
     echo.
-    pause
-    exit /b 1
+    "%PY%" -m pip install --disable-pip-version-check -r requirements.txt
+    "%PY%" -c "import playwright, openpyxl" >nul 2>&1
+    if errorlevel 1 (
+        echo.
+        echo [BERHENTI] Pustaka gagal dipasang. Periksa internet, lalu buka lagi.
+        echo.
+        pause
+        exit /b 1
+    )
 )
 
-python "inti/server.py"
+set "CKG_KECILKAN=1"
+"%PY%" "inti/server.py"
 echo.
 echo Aplikasi berhenti.
 pause

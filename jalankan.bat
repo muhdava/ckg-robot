@@ -6,17 +6,23 @@ REM =====================================================================
 setlocal
 cd /d "%~dp0"
 
-where python >nul 2>&1
-if errorlevel 1 (
-    echo.
-    echo [BERHENTI] Python tidak ditemukan.
-    echo Jalankan pasang.bat sekali saja lebih dulu.
-    echo.
-    pause
-    exit /b 1
+REM Python bawaan (dipasang Setup.exe) dipakai bila ada.
+set "PY=python"
+if exist "%~dp0python\python.exe" set "PY=%~dp0python\python.exe"
+
+if "%PY%"=="python" (
+    where python >nul 2>&1
+    if errorlevel 1 (
+        echo.
+        echo [BERHENTI] Python tidak ditemukan.
+        echo Jalankan pasang.bat sekali saja lebih dulu.
+        echo.
+        pause
+        exit /b 1
+    )
 )
 
-python -c "import playwright" >nul 2>&1
+"%PY%" -c "import playwright" >nul 2>&1
 if errorlevel 1 (
     echo.
     echo [BERHENTI] Playwright belum terpasang.
@@ -33,7 +39,7 @@ echo   Data: folder data\   Pengaturan: pengaturan.txt
 echo ==============================================================
 echo.
 
-python "inti/run.py"
+"%PY%" "inti/run.py"
 set KODE=%ERRORLEVEL%
 
 echo.

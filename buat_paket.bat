@@ -42,11 +42,11 @@ REM SEBELUM disalin: dasar tombol "Perbarui sekarang" di aplikasi petugas.
 for /f %%v in ('python "%~dp0alat\cap_versi.py"') do set "VERSI=%%v"
 if not defined VERSI goto gagal
 echo  Versi paket: %VERSI%
-echo  [1/3] Menyalin berkas...
+echo  [1/4] Menyalin berkas...
 REM mentah\ = salinan berkas Excel yang pernah di-convert (nama & NIK orang
 REM sungguhan); alat\ = skrip perapian/laporan milik pembuat paket, ada yang
 REM memuat NIK di dalamnya. Keduanya bukan untuk petugas penerima.
-robocopy "%~dp0." "%STAGE%" /E /NFL /NDL /NJH /NJS /NP /XD ".profil-browser*" "hasil" "mentah" "alat" "supabase" "cadangan-tampilan*" "cadangan-versi" "pembaruan" "__pycache__" ".git" /XF "*.pyc" "*.baru" "*.sementara" "buat_paket.bat" "akun.dat" >nul
+robocopy "%~dp0." "%STAGE%" /E /NFL /NDL /NJH /NJS /NP /XD ".profil-browser*" "hasil" "mentah" "alat" "supabase" "cadangan-tampilan*" "cadangan-versi" "pembaruan" "__pycache__" ".git" "pemasang" "python" /XF "*.pyc" "*.baru" "*.sementara" "buat_paket.bat" "akun.dat" ".pintasan" "unins000.*" >nul
 if errorlevel 8 goto gagal
 if not exist "%STAGE%\mentah" mkdir "%STAGE%\mentah"
 if exist "%~dp0mentah\BACA INI.txt" copy /y "%~dp0mentah\BACA INI.txt" "%STAGE%\mentah\" >nul
@@ -63,22 +63,50 @@ if "%IKUT%"=="0" (
     echo        data peserta ikut disertakan
 )
 
-echo  [2/3] Memampatkan...
+echo  [2/4] Memampatkan...
 if exist "%ZIP%" del /q "%ZIP%"
 powershell -NoProfile -Command "Compress-Archive -Path '%STAGE%\*' -DestinationPath '%ZIP%' -CompressionLevel Optimal"
 if errorlevel 1 goto gagal
 
-echo  [3/3] Membersihkan...
+REM Setup.exe dari salinan yang SAMA - hanya bila data peserta tidak ikut
+REM (Setup diunggah ke website untuk semua petugas). Butuh Inno Setup 6.
+set "SETUP="
+set "ISCC="
+if exist "%ProgramFiles(x86)%\Inno Setup 6\ISCC.exe" set "ISCC=%ProgramFiles(x86)%\Inno Setup 6\ISCC.exe"
+if not defined ISCC if exist "%ProgramFiles%\Inno Setup 6\ISCC.exe" set "ISCC=%ProgramFiles%\Inno Setup 6\ISCC.exe"
+if not defined ISCC if exist "%LOCALAPPDATA%\Programs\Inno Setup 6\ISCC.exe" set "ISCC=%LOCALAPPDATA%\Programs\Inno Setup 6\ISCC.exe"
+if "%IKUT%"=="1" (
+    echo  [3/4] Setup.exe TIDAK dibuat: data peserta ikut disertakan.
+    goto bersihkan
+)
+if not defined ISCC (
+    echo  [3/4] Setup.exe dilewati: Inno Setup 6 belum terpasang.
+    goto bersihkan
+)
+echo  [3/4] Membuat Setup.exe...
+set "PYBAWAAN="
+for /f "delims=" %%p in ('python "%~dp0pemasang\siapkan_python.py"') do set "PYBAWAAN=%%p"
+if not defined PYBAWAAN goto gagal
+"%ISCC%" /Q "/DVERSI=%VERSI%" "/DSUMBER=%STAGE%" "/DPYTHON=%PYBAWAAN%" "/DKELUARAN=%~dp0.." "/DNAMA=CKG-Robot-Setup-%TGL%" "%~dp0pemasang\ckg-robot.iss"
+if errorlevel 1 goto gagal
+set "SETUP=%~dp0..\CKG-Robot-Setup-%TGL%.exe"
+
+:bersihkan
+echo  [4/4] Membersihkan...
 rd /s /q "%STAGE%"
 
 echo.
 for %%A in ("%ZIP%") do set /a MB=%%~zA/1048576
 echo  ============================================================
 echo    SELESAI - %NAMA%.zip ^(sekitar !MB! MB^)
+if defined SETUP (
+    for %%A in ("!SETUP!") do set /a MBS=%%~zA/1048576
+    echo    dan     CKG-Robot-Setup-%TGL%.exe ^(sekitar !MBS! MB^)
+)
 echo    Ada di folder induk, sejajar dengan folder aplikasi ini.
 echo.
-echo    Petugas yang menerima: buka ZIP, jalankan pasang.bat
-echo    sekali saja, lalu aplikasi.bat.
+echo    ZIP  : terbitkan lewat Kelola Petugas ^(tombol Perbarui^).
+echo    Setup: unggah di Panel Admin website, untuk petugas baru.
 echo  ============================================================
 echo.
 pause

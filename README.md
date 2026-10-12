@@ -58,6 +58,12 @@ halaman web lokal (`localhost:8765`).
 - **Pembaruan dari dalam aplikasi:** admin *Terbitkan pembaruan* → petugas melihat pita
   **Versi baru tersedia** → *Perbarui sekarang*: unduh → cek SHA-256 → cadangkan → pasang → mulai ulang.
   Tombol **Periksa pembaruan** + pemeriksaan otomatis tiap jam. Data & pengaturan tidak disentuh.
+- **Setup.exe (Inno Setup) dengan Python bawaan:** petugas baru tidak perlu memasang Python. Dipasang per
+  pengguna di `%LOCALAPPDATA%\CKG Robot` (tanpa izin administrator), ikon CKG Robot di Desktop & Start Menu,
+  pintasan "folder data", uninstall dari Control Panel (data, hasil, pengaturan ditinggal). Pustaka diunduh
+  saat Setup berjalan; bila gagal (tanpa internet) dipasang otomatis saat aplikasi pertama dibuka.
+- **Ikon & shortcut** untuk pemasangan ZIP juga: dibuat `pasang.bat`, atau otomatis sekali setelah pembaruan.
+  Jendela hitam mengecil sendiri ke taskbar begitu aplikasi siap (muncul lagi bila ada galat).
 - **Data peserta tidak pernah dikirim ke server akun** — hanya ke portal. Rekap pemakaian berisi angka saja.
 
 ### Website (repo terpisah: `website-ckg-robot`)
@@ -68,27 +74,31 @@ dan Kelola Petugas untuk admin.
 
 ## Pemasangan (petugas)
 
-1. Daftar di **ckg-robot.netlify.app**, tunggu disetujui admin, unduh ZIP.
-2. Pasang **Python 3.14 (64-bit)** dari python.org — centang **Add python.exe to PATH**.
-3. Ekstrak ZIP ke folder tetap (mis. `D:\CKG Robot`), klik ganda **`pasang.bat`** (sekali saja).
-4. Setiap kali bekerja: klik ganda **`aplikasi.bat`**, masuk dengan email & kata sandi akun CKG Robot.
+1. Daftar di **ckg-robot.netlify.app**, tunggu disetujui admin, unduh **Setup**.
+2. Jalankan `CKG-Robot-Setup.exe` → Lanjut → Pasang (butuh internet). Bila muncul *Windows protected your PC*:
+   **More info → Run anyway** (Setup belum bersertifikat berbayar).
+3. Setiap kali bekerja: klik ikon **CKG Robot** di Desktop, masuk dengan email & kata sandi akun CKG Robot.
+
+Cara lama (ZIP): pasang Python 3.14 64-bit (centang *Add python.exe to PATH*), ekstrak ZIP ke folder tetap,
+klik ganda `pasang.bat` sekali — ikon Desktop ikut dibuat.
 
 Langkah bergambar: `Panduan CKG Robot.pdf`.
 
 ## Susunan repo
 
 ```
-aplikasi.bat          buka aplikasi (halaman web lokal)
-pasang.bat            pemasangan sekali per komputer
+aplikasi.bat          buka aplikasi (halaman web lokal); pakai python\ bawaan bila ada
+pasang.bat            pemasangan sekali per komputer (+ shortcut); dipanggil Setup dengan /setup
 jalankan.bat          versi terminal
-buat_paket.bat        membuat ZIP rilis (mencap nomor versi otomatis)
+buat_paket.bat        membuat ZIP rilis + Setup.exe (mencap nomor versi otomatis)
 buat_akun.bat         akun mode lokal (tidak dipakai di login online)
 pengaturan.txt        pengaturan lanjutan
 inti/                 kode program (server, alur, portal, form, konverter, pembaruan, halaman)
 inti/login_online.json  alamat & kunci PUBLISHABLE Supabase (aman publik)
 template/             template Excel data peserta
 supabase/             skema SQL & panduan menyalakan login online (tidak ikut ZIP)
-alat/                 alat pengembang: cap_versi, buat_demo_web, buat_admin_web, buat_template_sekolah
+pemasang/             naskah Inno Setup + penyiap Python bawaan (tidak ikut ZIP)
+alat/                 alat pengembang: cap_versi, buat_demo_web, buat_admin_web, buat_template_sekolah, buat_ikon
 ```
 
 Tidak ada di repo (lihat `.gitignore`): `data/`, `hasil/`, `mentah/`, `.profil-browser*/`, `akun.dat`,
@@ -121,8 +131,10 @@ cadangan, dan skrip perapian khusus sekolah — semuanya berisi data peserta ata
 ## Rilis & pembaruan (admin)
 
 1. Ubah kode → uji → `buat_paket.bat` (jawab **t**: tanpa data peserta). Nomor versi `tahun.bulan.tanggal.jammenit`
-   dicap otomatis ke `inti/config.py`.
+   dicap otomatis ke `inti/config.py`. Bila **Inno Setup 6** terpasang, `CKG-Robot-Setup-<tanggal>.exe` ikut dibuat
+   (Python embeddable diunduh sekali dari python.org ke `pemasang/cache/`, versi sama dengan Python komputer ini).
 2. Aplikasi → **Kelola Petugas → Terbitkan pembaruan** → pilih ZIP, tulis catatan.
+   Setup diunggah lewat **Panel admin website** (tidak wajib tiap rilis — Setup lama langsung ditawari pembaruan).
 3. Commit & push repo ini, catat perubahan di **Riwayat perubahan** di bawah.
 4. Bila tampilan berubah: `python alat\buat_demo_web.py` dan/atau `python alat\buat_admin_web.py`, lalu push repo website.
 
@@ -133,6 +145,19 @@ SQL Supabase dijalankan sekali, berurutan: `skema.sql` → `tambahan-website.sql
 ---
 
 ## Riwayat perubahan
+
+### 2026.10.12.2121
+- **Setup.exe** untuk petugas baru: Python ikut dibundel, ikon & Start Menu, uninstall dari Control Panel.
+  Dibuat otomatis oleh `buat_paket.bat` (Inno Setup 6), ~13 MB.
+- **Ikon CKG Robot** (kotak hijau toska + palang putih, sama dengan logo website) untuk shortcut, Setup, dan tab browser.
+- **Shortcut Desktop & Start Menu** untuk pemasangan ZIP: dibuat `pasang.bat`, atau otomatis sekali setelah pembaruan
+  (tidak menimpa shortcut milik salinan CKG Robot lain; tidak muncul lagi bila sengaja dihapus).
+- Jendela hitam **mengecil sendiri** ke taskbar setelah aplikasi siap; muncul lagi bila ada galat. Ikon diklik saat
+  aplikasi masih jalan → halamannya dibukakan.
+- `aplikasi.bat` memasang pustaka yang kurang **otomatis** (tidak lagi menyuruh menjalankan `pasang.bat`).
+- Pembaruan tidak pernah menyentuh `python\` bawaan dan `pemasang\`.
+- Website: tombol unduh utama → Setup (cadangan ZIP bila Setup belum diunggah), baris unggah Setup di Panel admin,
+  langkah pemasangan & tanya jawab baru.
 
 ### 2026.10.12.1458
 - Nama & NIK peserta sungguhan di komentar kode **disamarkan** sebelum repo diterbitkan

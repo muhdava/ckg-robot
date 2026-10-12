@@ -8,26 +8,35 @@ mengetik dan mengklik.
 
 ## BAGIAN 1 — Pemasangan (sekali saja)
 
-**1. Pasang Python**
+**1. Unduh Setup CKG Robot**
 
-Unduh dari <https://www.python.org/downloads/> lalu pasang.
-Saat memasang, **centang "Add Python to PATH"** di layar pertama.
+Masuk ke **ckg-robot.netlify.app**, klik **Unduh CKG Robot**. Berkasnya
+`CKG-Robot-Setup.exe`. Python sudah termasuk di dalamnya — tidak perlu
+memasang Python sendiri.
 
-> Ini langkah yang paling sering terlewat. Kalau tidak dicentang, langkah
-> berikutnya akan bilang "Python tidak ditemukan" — pasang ulang saja dan
-> centang kotaknya.
+**2. Jalankan Setup**
 
-**2. Keluarkan berkas dari ZIP**
+Klik ganda berkasnya, lalu **Lanjut → Pasang**. Setup mengunduh pustaka dan
+browser robot (butuh internet, sekitar 2–5 menit; ada jendela hitam yang
+menutup sendiri bila selesai).
 
-Letakkan foldernya di tempat tetap, misalnya `D:\CKG Robot`.
-**Jangan dijalankan dari dalam ZIP.**
+> Bila muncul **"Windows protected your PC"**, klik **More info** lalu
+> **Run anyway**. Windows memperingatkan semua program tanpa sertifikat
+> penerbit berbayar — bukan tanda berbahaya. Unduh Setup hanya dari website.
 
-**3. Klik ganda `pasang.bat`**
+**3. Ikon CKG Robot**
 
-Butuh internet, sekitar 2–5 menit. Tunggu sampai muncul tulisan **SELESAI**.
+Setelah selesai ada ikon **CKG Robot** di Desktop dan Start Menu. Di Start
+Menu juga ada **CKG Robot - folder data** untuk membuka folder `data\`,
+`hasil\`, dan `template\`.
 
 Chrome tidak wajib. Kalau ada, itu yang dipakai; kalau tidak, browser cadangan
-yang dipasang di langkah ini.
+yang dipasang Setup.
+
+> **Masih memakai versi ZIP?** Tidak perlu memasang Setup. Perbarui saja
+> lewat tombol **Perbarui** di aplikasi — ikon CKG Robot di Desktop muncul
+> sendiri setelah pembaruan. (Cara lama ZIP: pasang Python dengan centang
+> "Add Python to PATH", ekstrak ZIP ke folder tetap, klik ganda `pasang.bat`.)
 
 **4. Akun CKG Robot**
 
@@ -74,10 +83,12 @@ Yang perlu diperhatikan:
 
 ## BAGIAN 3 — Menjalankan (setiap kali dipakai)
 
-**7. Klik ganda `aplikasi.bat`**
+**7. Klik ikon CKG Robot di Desktop**
 
-Jendela hitam terbuka — **jangan ditutup selama bekerja** — dan halaman
-aplikasi muncul sendiri di browser. Masuk dengan akun yang tadi kamu buat.
+Halaman aplikasi muncul sendiri di browser, dan jendela hitamnya mengecil ke
+taskbar — **jangan ditutup selama bekerja**. Masuk dengan akun yang tadi kamu
+buat. Ikonnya diklik lagi padahal aplikasi masih jalan? Halamannya dibukakan
+lagi; tidak ada yang rusak.
 
 **8. Pilih pekerjaannya**
 
@@ -175,7 +186,7 @@ Robotnya jalan di komputermu, bukan di server.
 
 | Yang terjadi | Lakukan |
 |---|---|
-| "Python tidak ditemukan" | Pasang ulang Python, centang "Add Python to PATH" |
+| "Python tidak ditemukan" (versi ZIP) | Pasang ulang Python, centang "Add Python to PATH" — atau pakai Setup dari website |
 | "Playwright belum terpasang" | Jalankan `pasang.bat` sekali lagi |
 | Tombol Unduh Excel bilang openpyxl belum ada | Jalankan `pasang.bat` sekali lagi |
 | Halaman aplikasi tidak terbuka sendiri | Buka browser, ketik `localhost:8765` |
