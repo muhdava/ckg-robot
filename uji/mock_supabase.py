@@ -146,6 +146,18 @@ def rpc(fungsi, uid, a):
             return gagal("sandi_pendek", "Kata sandi minimal 8 karakter.")
         USERS[a["p_id"]]["pw"] = a["p_sandi"]
         return {"ok": True}
+    if fungsi == "admin_ganti_email":                      # supabase/tambahan-ubah-email.sql
+        import re as _re
+        e = (a.get("p_email") or "").strip().lower()
+        if not _re.fullmatch(r"[^@\s]+@[^@\s]+\.[^@\s]+", e) or len(e) > 254:
+            return gagal("email_salah", "Format email tidak sah.")
+        if any(u["email"].lower() == e and i != a["p_id"] for i, u in USERS.items()):
+            return gagal("email_dipakai", "Email ini sudah dipakai akun lain.")
+        if a["p_id"] not in USERS:
+            return gagal("tidak_ada", "Petugas tidak ditemukan.")
+        USERS[a["p_id"]]["email"] = e
+        PETUGAS[a["p_id"]]["email"] = e
+        return {"ok": True}
     if fungsi == "admin_terbitkan":
         import re as _re
         if not _re.fullmatch(r"\d{4}\.\d{2}\.\d{2}(\.\d{4})?", a.get("p_versi") or ""):

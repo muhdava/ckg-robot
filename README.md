@@ -53,7 +53,7 @@ halaman web lokal (`localhost:8765`).
   Izin diperiksa saat masuk dan setiap kali pekerjaan dimulai. Batas komputer per akun, versi minimal,
   pengumuman. Login portal tetap dilakukan petugas sendiri (captcha); kata sandi portal tidak disimpan.
 - **Kelola Petugas** (aplikasi & `ckg-robot.netlify.app/kelola/`): setujui/tolak, nonaktifkan,
-  buatkan akun, ganti sandi, lepas komputer, pengumuman, **rekap pemakaian** (jumlah per hari/petugas,
+  buatkan akun, **ubah data petugas** (nama, puskesmas, no. HP, email), ganti sandi, lepas komputer, pengumuman, **rekap pemakaian** (jumlah per hari/petugas,
   peringatan bila kegagalan melonjak), unduh daftar petugas.
 - **Pembaruan dari dalam aplikasi:** admin *Terbitkan pembaruan* → petugas melihat pita
   **Versi baru tersedia** → *Perbarui sekarang*: unduh → cek SHA-256 → cadangkan → pasang → mulai ulang.
@@ -146,12 +146,21 @@ cadangan, dan skrip perapian khusus sekolah — semuanya berisi data peserta ata
 4. Bila tampilan berubah: `python alat\buat_demo_web.py` dan/atau `python alat\buat_admin_web.py`, lalu push repo website.
 
 SQL Supabase dijalankan sekali, berurutan: `skema.sql` → `tambahan-website.sql` →
-`tambahan-website-2-aturan-berkas.sql` → `tambahan-pembaruan.sql` → `tambahan-pemantauan.sql`
+`tambahan-website-2-aturan-berkas.sql` → `tambahan-pembaruan.sql` → `tambahan-pemantauan.sql` →
+`tambahan-ubah-email.sql`
 (panduan: `supabase/PANDUAN SUPABASE.md`).
 
 ---
 
 ## Riwayat perubahan
+
+### 2026.10.13.0840
+- **Admin mengubah data petugas**: Kelola Petugas → Lainnya → *Ubah data petugas* (nama, puskesmas, no. HP,
+  email), di aplikasi dan di website (`kelola/`). Email ditolak bila formatnya salah atau sudah dipakai akun lain;
+  mengubah email meminta konfirmasi.
+- SQL baru **`supabase/tambahan-ubah-email.sql`** (`admin_ganti_email`) — jalankan sekali; tanpa itu nama/puskesmas/
+  no. HP tetap bisa diubah, email memberi petunjuk menjalankan SQL.
+- Server uji (`uji/mock_supabase.py`) meniru `admin_ganti_email`; Panduan PDF & PANDUAN SUPABASE §12.
 
 ### 2026.10.12.2216
 - **Pengumuman admin langsung sampai**, juga selagi robot bekerja: `/api/kabar` ditanya halaman tiap 2 menit,

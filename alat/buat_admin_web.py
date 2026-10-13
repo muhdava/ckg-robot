@@ -60,6 +60,7 @@ async function kirim(alamat, isi){
     }
     case 'lepas-perangkat': return rpc('admin_lepas_perangkat', { p_id: Number(isi.id) });
     case 'ganti-sandi': return rpc('admin_ganti_sandi', { p_id: isi.id, p_sandi: String(isi.sandi || '') });
+    case 'ganti-email': return rpc('admin_ganti_email', { p_id: isi.id, p_email: String(isi.email || '').trim() });
     case 'pengaturan': {
       const a = {};
       if (isi.versi_minimal != null) a.p_versi_minimal = String(isi.versi_minimal).trim();

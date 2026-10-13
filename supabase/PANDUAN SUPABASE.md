@@ -149,3 +149,14 @@ Sekali: jalankan `tambahan-pemantauan.sql` di SQL Editor.
   lalu commit & push repo website.
 - **Cadangan**: tombol **⬇ Unduh daftar** di Kelola Petugas menyimpan daftar
   petugas sebagai CSV. Simpan sesekali.
+
+## 12. Admin mengubah data & email petugas
+
+Sekali: jalankan `tambahan-ubah-email.sql` di SQL Editor.
+
+Kelola Petugas → **Lainnya** → **✎ Ubah data petugas**: nama, puskesmas,
+no. HP, dan email. Nama/puskesmas/no. HP sudah jalan tanpa SQL ini (fungsi
+`admin_ubah` dari `skema.sql`); **email** butuh fungsi `admin_ganti_email`
+karena email adalah nama masuk akun (tabel `auth.users`). Email baru langsung
+berlaku; petugas masuk dengan email baru, kata sandinya tetap. Email yang sudah
+dipakai akun lain ditolak.

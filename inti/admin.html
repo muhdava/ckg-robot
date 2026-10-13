@@ -67,6 +67,9 @@
      font-weight:700; padding:8px 10px; border-bottom:1px solid var(--garis); background:var(--abu-muda)}
   td{padding:10px; border-bottom:1px solid var(--garis); vertical-align:top}
   tr.rinci td{background:#fafbfc; padding:14px 16px}
+  .ubah-data{background:#fff; border:1px solid var(--utama-garis); border-radius:10px; padding:12px 14px; margin:0 0 12px}
+  .ubah-data .baris-isian{margin-bottom:10px}
+  .ubah-data p{margin:0 0 10px; font-size:12.5px; color:var(--redup)}
   .nama b{display:block}
   .nama span{color:var(--redup); font-size:12.5px}
   .pil{display:inline-block; padding:2px 9px; border-radius:999px; font-size:12px; font-weight:600; border:1px solid}
@@ -196,6 +199,7 @@ const esc = (s) => String(s ?? '').replace(/[&<>"']/g,
 let DATA = {petugas: [], pengaturan: {}};
 let SARING = 'menunggu';
 const BUKA = new Set();
+const UBAH = new Set();      // petugas yang formulir "Ubah data"-nya sedang terbuka
 
 function kabar(id, teks, ok){
   const k = $(id);
@@ -350,9 +354,23 @@ function gambar(){
           <b>${esc(d.nama_komputer) || 'komputer'}</b><span>versi ${esc(d.versi) || '?'} · terakhir ${waktu(d.terakhir)}</span>
           <button class="kecil bahaya" data-aksi="lepas" data-id="${esc(d.id)}" data-nama="${esc(d.nama_komputer)}">Lepas</button></div>`).join('')
         : '<div><span>Belum pernah masuk dari komputer mana pun.</span></div>';
-      html += `<tr class="rinci"><td colspan="7">
+      const formulir = UBAH.has(p.id) ? `<div class="ubah-data" data-id="${esc(p.id)}">
+          <label>Ubah data petugas</label>
+          <div class="baris-isian">
+            <div><label>Nama lengkap</label><input data-isian="nama" maxlength="100" value="${esc(p.nama)}"></div>
+            <div><label>Puskesmas</label><input data-isian="puskesmas" maxlength="100" value="${esc(p.puskesmas)}"></div>
+            <div><label>No. HP / WhatsApp</label><input data-isian="no_hp" maxlength="30" inputmode="tel" value="${esc(p.no_hp)}"></div>
+            <div><label>Email <small>(untuk masuk)</small></label><input data-isian="email" type="email" maxlength="254" value="${esc(p.email)}"></div>
+          </div>
+          <p>Mengubah email berarti petugas masuk dengan email baru; kata sandinya tetap.</p>
+          <div class="tombol-baris">
+            <button class="kecil utama" data-aksi="simpan-data" data-id="${esc(p.id)}">Simpan</button>
+            <button class="kecil" data-aksi="batal-data" data-id="${esc(p.id)}">Batal</button>
+          </div></div>` : '';
+      html += `<tr class="rinci"><td colspan="7">${formulir}
         <label>Komputer yang dipakai</label><div class="perangkat">${perangkat}</div>
         <div class="tombol-baris">
+          ${UBAH.has(p.id) ? '' : `<button class="kecil" data-aksi="ubah-data" data-id="${esc(p.id)}">✎ Ubah data petugas</button>`}
           <button class="kecil" data-aksi="sandi" data-id="${esc(p.id)}">Ganti kata sandi</button>
           <button class="kecil" data-aksi="peran" data-id="${esc(p.id)}">${p.peran === 'admin' ? 'Jadikan petugas biasa' : 'Jadikan admin'}</button>
           <button class="kecil" data-aksi="batas" data-id="${esc(p.id)}">Batas komputer: ${p.maks_perangkat ?? 'ikut umum (' + umum + ')'}</button>
@@ -370,7 +388,51 @@ $('isi-tabel').onclick = async (e) => {
   let hasil;
   if (aksi === 'rinci'){
     BUKA.has(id) ? BUKA.delete(id) : BUKA.add(id);
+    if (!BUKA.has(id)) UBAH.delete(id);
     gambar(); return;
+  }
+  if (aksi === 'ubah-data' || aksi === 'batal-data'){
+    aksi === 'ubah-data' ? UBAH.add(id) : UBAH.delete(id);
+    gambar();
+    if (aksi === 'ubah-data') document.querySelector(`.ubah-data[data-id="${CSS.escape(id)}"] input`)?.focus();
+    return;
+  }
+  if (aksi === 'simpan-data'){
+    const f = b.closest('.ubah-data');
+    const nilai = (k) => f.querySelector(`[data-isian="${k}"]`).value.trim();
+    const baru = {nama: nilai('nama'), puskesmas: nilai('puskesmas'), no_hp: nilai('no_hp'), email: nilai('email').toLowerCase()};
+    if (!baru.nama) return kabar('kabar-petugas', 'Nama tidak boleh kosong.');
+    if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(baru.email)) return kabar('kabar-petugas', 'Format email tidak sah.');
+    const ubah = {};
+    for (const k of ['nama', 'puskesmas', 'no_hp']) if (baru[k] !== (p[k] || '')) ubah[k] = baru[k];
+    const emailBaru = baru.email !== (p.email || '').toLowerCase();
+    if (!Object.keys(ubah).length && !emailBaru){
+      UBAH.delete(id); gambar(); return kabar('kabar-petugas', 'Tidak ada yang berubah.', true);
+    }
+    if (emailBaru && !confirm(`Ubah email masuk ${p.nama || p.email}\ndari  ${p.email}\nmenjadi  ${baru.email} ?\n\n`
+                              + 'Petugas harus masuk dengan email baru; kata sandinya tetap.')) return;
+    b.disabled = true; b.textContent = 'Menyimpan…';
+    const pesan = [];
+    let ok = true;
+    if (Object.keys(ubah).length){
+      const h = await kirim('/api/admin/ubah', {id, ...ubah});
+      if (h.ok) pesan.push('Data petugas disimpan.'); else { ok = false; pesan.push(h.pesan || 'Gagal menyimpan data.'); }
+    }
+    if (ok && emailBaru){
+      const h = await kirim('/api/admin/ganti-email', {id, email: baru.email});
+      if (h.ok) pesan.push(`Email diganti menjadi ${baru.email}. Beri tahu petugasnya.`);
+      else {
+        ok = false;
+        pesan.push(/admin_ganti_email|function|tidak dikenal|404/i.test(h.pesan || '')
+          ? 'Ubah email belum aktif - jalankan supabase\\tambahan-ubah-email.sql di Supabase.'
+          : (h.pesan || 'Gagal mengganti email.'));
+      }
+    }
+    b.disabled = false; b.textContent = 'Simpan';
+    if (ok) UBAH.delete(id);
+    kabar('kabar-petugas', pesan.join(' '), ok);
+    await muat();
+    return;
   }
   if (aksi === 'aktif'){
     hasil = await kirim('/api/admin/ubah', {id, status: 'aktif'});

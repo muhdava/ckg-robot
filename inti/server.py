@@ -1092,6 +1092,10 @@ class Penangan(BaseHTTPRequestHandler):
         elif aksi == "ganti-sandi":
             self._json(_rpc_admin(sesi, "admin_ganti_sandi",
                                   {"p_id": str(data.get("id", "")), "p_sandi": str(data.get("sandi", ""))}))
+        elif aksi == "ganti-email":
+            # supabase/tambahan-ubah-email.sql
+            self._json(_rpc_admin(sesi, "admin_ganti_email",
+                                  {"p_id": str(data.get("id", "")), "p_email": str(data.get("email", "")).strip()}))
         elif aksi == "pemakaian":
             try:
                 hari = int(data.get("hari") or 14)
