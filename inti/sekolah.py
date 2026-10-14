@@ -666,14 +666,14 @@ def _daftar_sekali(halaman, orang: Peserta, jejak: list,
         portal.tunggu_siap(halaman, portal.js_atau(
             portal.js_ada_tombol("Gunakan Data"),
             portal.js_terisi(r"#Nama\ Lengkap"),
-            portal.js_ada_teks("tidak valid")), 2500, "jawaban Cek NIK")
+            portal.js_ada_teks("tidak valid"), portal.TIDAK_VALID_JS), 2500, "jawaban Cek NIK")
         _rekam(halaman, jejak, "3_setelah_cek_nik")
 
         if portal.sudah_dilayani(halaman):
             _tandai_dilayani(halaman, orang, hasil, "ditolak sesudah Cek NIK")
             return hasil
 
-        if portal.teks_ada(halaman, "tidak valid"):
+        if portal.teks_ada(halaman, "tidak valid") or portal.data_tidak_valid(halaman):
             hasil.update(status="tidak_valid", keterangan="NIK/data dinyatakan tidak valid")
             return hasil
 

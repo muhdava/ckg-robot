@@ -177,6 +177,9 @@ SQL Supabase dijalankan sekali, berurutan: `skema.sql` → `tambahan-website.sql
 - **"Mulai Pemeriksaan" tidak lagi gagal saat portal "Memproses data.."**: tombol Simpan tanggal pemeriksaan
   ditunggu sampai AKTIF (dulu menyerah dalam 3 detik selagi masih mati); bila tetap mati, tanggal dipilih ulang (maks 3x).
   Percobaan ke-2 juga menekan "Mulai Pemeriksaan" lagi bila tombolnya masih ada, bukan menyapu form yang terkunci.
+- **Popup penolakan baru dikenali**: "Data Tidak Ditemukan, NIK tidak terdapat di database Kependudukan" kini
+  berstatus `tidak_valid` (dulu `error` dan diulang percuma), kalimat portal tercatat di keterangan. Kalimat
+  "Silakan perbaiki data yang dimasukkan" ikut jadi penanda untuk bunyi penolakan berikutnya.
 - Uji jalan 14 Okt (data TBC 13 Okt): 26 tuntas, 47 sudah_pelayanan, form terkirim sesuai data.
 
 ### 2026.10.13.0840

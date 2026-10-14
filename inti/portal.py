@@ -722,7 +722,7 @@ def tutup_popup_info(halaman: Page) -> str:
     except Exception:
         return ""
     rendah = isi.lower()
-    if "tidak valid" in rendah:
+    if "tidak valid" in rendah or POLA_TIDAK_VALID.search(isi):
         return ""
     pesan = next((p for p in _PESAN_INFO if p in rendah), "")
     if not pesan:
@@ -1618,10 +1618,24 @@ SUDAH_TERDAFTAR_JS = (r"() => /(?:individu|peserta)\s+sudah\s+terdaftar"
 #
 # Polanya dibuat menerima sisipan apa pun di antara "data" dan "tidak valid",
 # supaya bunyi ketiga - kalau nanti ada - ikut tertangkap.
-POLA_TIDAK_VALID = re.compile(r"data\s+(?:peserta|wali|individu)[^.\n]{0,40}?"
-                              r"tidak\s+valid", re.I)
-TIDAK_VALID_JS = (r"() => /data\s+(?:peserta|wali|individu)[^.\n]{0,40}?"
-                  r"tidak\s+valid/i.test(document.body.innerText || '')")
+#
+# Bunyi ketiga memang datang (14 Okt 2026), dan TIDAK memuat "tidak valid":
+#
+#     "Data Tidak Ditemukan, NIK tidak terdapat di database Kependudukan
+#      Silakan perbaiki data yang dimasukkan. Pastikan data sudah benar dan
+#      sesuai KTP/KK."                                   [Periksa Kembali]
+#
+# Tanpa dikenali, penolakan itu tercatat "error" - bukan tidak_valid - dan
+# pesertanya diulang-ulang percuma. Kalimat "Silakan perbaiki data yang
+# dimasukkan" ada di SEMUA popup penolakan yang kita kenal, jadi ikut
+# dijadikan penanda supaya bunyi berikutnya pun tertangkap.
+_TIDAK_VALID = (r"data\s+(?:peserta|wali|individu)[^.\n]{0,40}?tidak\s+valid"
+                r"|NIK\s+tidak\s+terdapat\s+di\s+database"
+                r"|data\s+tidak\s+ditemukan,\s*NIK"
+                r"|silakan\s+perbaiki\s+data\s+yang\s+dimasukkan")
+POLA_TIDAK_VALID = re.compile(_TIDAK_VALID, re.I)
+TIDAK_VALID_JS = (r"() => /" + _TIDAK_VALID.replace("/", r"\/")
+                  + r"/i.test(document.body.innerText || '')")
 
 
 def pesan_penolakan(halaman: Page) -> str:

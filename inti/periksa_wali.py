@@ -131,7 +131,7 @@ def main() -> None:
         portal.tunggu_siap(halaman, portal.js_atau(
             portal.js_ada_tombol("Gunakan Data"),
             portal.js_terisi(r"#Nama\ Lengkap"),
-            portal.js_ada_teks("tidak valid")), 4000, "jawaban Cek NIK")
+            portal.js_ada_teks("tidak valid"), portal.TIDAK_VALID_JS), 4000, "jawaban Cek NIK")
         portal.klik_tombol(halaman, "Gunakan Data", timeout=3_000)
 
         galat = portal.isi_tanggal_lahir(halaman, lahir)

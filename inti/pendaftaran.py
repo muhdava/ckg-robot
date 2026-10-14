@@ -310,6 +310,7 @@ def daftar_peserta(halaman, orang: Peserta, jejak: list | None = None) -> HasilD
             portal.js_ada_tombol("Gunakan Data"),
             portal.js_terisi(r"#Nama\ Lengkap"),
             portal.js_ada_teks("tidak valid"),
+            portal.TIDAK_VALID_JS,
             # Keadaan KEEMPAT, yang dulu tidak ikut ditunggu: peserta sudah
             # dilayani. Tanpa ini penantiannya selalu habis penuh lebih dulu,
             # padahal jawabannya sudah ada di layar sejak detik pertama.
@@ -331,7 +332,8 @@ def daftar_peserta(halaman, orang: Peserta, jejak: list | None = None) -> HasilD
             portal.tunggu_siap(halaman, portal.js_atau(
                 portal.js_ada_tombol("Gunakan Data"),
                 portal.js_terisi(r"#Nama\ Lengkap"),
-                portal.js_ada_teks("tidak valid")), 2500, "jawaban Cek NIK (ulang)")
+                portal.js_ada_teks("tidak valid"), portal.TIDAK_VALID_JS), 2500,
+                "jawaban Cek NIK (ulang)")
             pesan2 = portal.tutup_popup_galat(halaman)
             if pesan2:
                 hasil.update(status="gagal",
@@ -344,8 +346,10 @@ def daftar_peserta(halaman, orang: Peserta, jejak: list | None = None) -> HasilD
             _tandai_dilayani(halaman, hasil, "ditolak sesudah Cek NIK: sudah dilayani")
             return hasil
 
-        if portal.teks_ada(halaman, "tidak valid"):
-            hasil.update(status="tidak_valid", keterangan="NIK/data dinyatakan tidak valid")
+        if portal.teks_ada(halaman, "tidak valid") or portal.data_tidak_valid(halaman):
+            pesan = portal.pesan_penolakan(halaman)
+            hasil.update(status="tidak_valid", keterangan="NIK/data dinyatakan tidak valid"
+                         + (f" - portal bilang: {pesan!r}" if pesan else ""))
             return hasil
 
         # ---------------------------------------------------------------- 4. identitas
