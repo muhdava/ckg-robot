@@ -13,6 +13,23 @@ KENAPA REAL DATA, BUKAN PARAMETER
     tensi, gula darah, serta hasil periksa mata, telinga, dan gigi. Semuanya
     dipakai apa adanya; tidak ada yang diturunkan dari kata "Normal/Tinggi"
     seperti pada tata letak PARAMETER.
+
+KOLOM 35 "RINCI" - TEMUAN YANG DIJAWAB ROBOT SESUAI DATA (14 Okt 2026)
+    Sebelumnya robot menjawab semua pertanyaan form dewasa dengan Normal/Tidak,
+    sehingga perokok, gigi hilang, gejala TBC, dan hasil rontgen dari berkas ini
+    tidak pernah sampai ke portal. Kini temuan tiap peserta ditulis sebagai
+    "kunci=nilai;..." di kolom 35, dan form.aturan_rinci() mengubahnya menjadi
+    jawaban per pertanyaan. Pertanyaan dan pilihannya DIBACA dari form portal
+    (form.kemkes.go.id, 14 Okt 2026), bukan ditebak:
+      Faktor Risiko & X-Ray TB : batuk (>2 mgg / <2 mgg / tidak), BB turun,
+                                 demam, keringat malam, kelenjar, radiografi
+                                 dilakukan?, hasil rontgen (Normal / Abnormal
+                                 TBC / Abnormal non TBC)
+      Pemeriksaan TB           : kontak (serumah / erat / tidak ada), jenis
+                                 TBC indeks, metode pemeriksaan dahak
+      Telinga & Mata, Gigi, Merokok, Gula Darah (riwayat DM)
+    Yang WAJIB di portal tapi TIDAK ADA di berkas diisi menurut keputusan
+    pengguna (14 Okt 2026) - lihat KEPUTUSAN di bawah - dan dicatat di laporan.
 """
 from __future__ import annotations
 
@@ -34,13 +51,25 @@ S_NO, S_NAMA, S_JK, S_LAHIR, S_NIK, S_KERJA, S_ALAMAT, S_HP = 1, 2, 3, 4, 5, 6, 
 S_BB, S_TB, S_IMT, S_LP, S_TENSI, S_GDS = 14, 15, 16, 17, 18, 19
 S_MATA, S_TELINGA, S_GIGI = 20, 21, 22
 S_MEROKOK, S_DM, S_KESIMPULAN = 24, 25, 33
+S_SASARAN, S_HADIR = 9, 13
+S_BATUK, S_LAMA_BATUK, S_BB_TURUN, S_DEMAM, S_KERINGAT, S_KELENJAR = 27, 28, 29, 30, 31, 32
+S_RONTGEN = 34
+
+# KEPUTUSAN PENGGUNA (14 Okt 2026) untuk isian yang WAJIB di portal tetapi
+# tidak ada di berkas skrining. Diubah di sini bila keputusannya berubah.
+JENIS_INDEKS = "bakteriologis"     # jenis TBC pasien indeks untuk peserta kontak
+DAHAK = "tidak_dilakukan"          # metode pemeriksaan dahak (hasil lab tidak ada di berkas)
+# Perokok: rokok konvensional, dan terpapar asap rokok. Bukan perokok: tidak terpapar.
+# Visus Snellen untuk "curiga gangguan penglihatan": Normal (tidak ada di berkas).
+# Riwayat DM "Ya" dijawab Tidak: lama diagnosis (wajib) tidak ada di berkas.
 
 # Kolom keluaran = template "DEWASA-LANSIA (real data)", 34 kolom.
 TETAP = {
     7: "DKI Jakarta", 8: "Kota Adm. Jakarta Utara", 9: "Koja", 10: "Lagoa",
     15: "Tidak",        # riwayat hipertensi - tidak ada di berkas sumber
     25: "Normal", 26: "Normal", 27: "Normal",       # frambusia, kusta, skabies
-    28: "Normal",       # TB X-Ray: kegiatannya "Tanpa Rontgen"
+    # 28 (TB X-Ray) DIHITUNG dari kolom Hasil Rontgen - kegiatan 13 Okt 2026
+    # memakai rontgen, dan 16 dari 70 hasilnya abnormal.
     30: "Normal",       # kesehatan jiwa
     31: "Normal", 32: "Normal", 33: "Normal", 34: "Normal",
 }
@@ -130,6 +159,72 @@ def _kategori_lp(lp: int | None, kelamin: str) -> str:
     return min(LP_KATEGORI, key=lambda k: jarak(LP_KATEGORI[k]))
 
 
+def _ya(ws, r: int, k: int) -> bool:
+    return _teks(ws, r, k).lower().startswith("ya")
+
+
+def _rinci(ws, r: int) -> tuple[str, str, list[str]]:
+    """
+    Temuan satu peserta -> ("kunci=nilai;...", parameter TB X-Ray, catatan).
+
+    Hanya kunci dan nilai pendek - artinya diterjemahkan ke bunyi pertanyaan
+    dan pilihan portal oleh form.aturan_rinci().
+    """
+    d: dict[str, str] = {}
+    cat: list[str] = []
+
+    if _ya(ws, r, S_BATUK):
+        lama = _angka(ws.cell(row=r, column=S_LAMA_BATUK).value)
+        # Satuannya HARI: di berkas 13 Okt 2026 ketiga peserta berkesimpulan
+        # "Ada Gejala" batuk 15, 17, 23, sedangkan yang 2-8 tidak.
+        if lama is None:
+            d["batuk"] = "kurang"
+            cat.append("batuk Ya tanpa lama batuk - dijawab 'kurang dari 2 minggu'")
+        else:
+            d["batuk"] = "lebih" if lama >= 14 else "kurang"
+    else:
+        d["batuk"] = "tidak"
+    for kunci, kol in (("bb_turun", S_BB_TURUN), ("demam", S_DEMAM), ("keringat", S_KERINGAT),
+                       ("kelenjar", S_KELENJAR)):
+        d[kunci] = "ya" if _ya(ws, r, kol) else "tidak"
+
+    ro = _teks(ws, r, S_RONTGEN).lower()
+    if not ro:
+        d["rontgen"] = "tidak_dilakukan"
+    elif "bukan" in ro or "non" in ro:
+        d["rontgen"] = "abnormal_non"
+    elif "abnormal" in ro and "tbc" in ro:
+        d["rontgen"] = "abnormal_tbc"
+    elif ro.startswith("normal"):
+        d["rontgen"] = "normal"
+    else:
+        d["rontgen"] = "tidak_dilakukan"
+        cat.append(f"hasil rontgen tak dikenal ({ro!r}) - dijawab 'tidak dilakukan'")
+    xray = {"normal": "Normal", "tidak_dilakukan": "Normal"}.get(d["rontgen"], "Tidak Normal")
+
+    sasaran = _teks(ws, r, S_SASARAN).lower()
+    d["kontak"] = "serumah" if "serumah" in sasaran else "erat" if "erat" in sasaran else "tidak"
+    if d["kontak"] != "tidak":
+        d["indeks"] = JENIS_INDEKS
+    d["dahak"] = DAHAK
+
+    mata = _teks(ws, r, S_MATA).lower()
+    d["mata"] = "curiga" if "curiga" in mata else "normal"
+    d["serumen"] = "ada" if "impaksi" in _teks(ws, r, S_TELINGA).lower() else "tidak"
+    gigi = _teks(ws, r, S_GIGI).lower()
+    d["karies"] = "ya" if "karies" in gigi else "tidak"
+    d["gigi_hilang"] = "ya" if "dicabut" in gigi or "hilang" in gigi else "tidak"
+
+    d["rokok"] = "ya" if _ya(ws, r, S_MEROKOK) else "tidak"
+    d["asap"] = d["rokok"]
+    d["dm"] = "tidak"
+    if _ya(ws, r, S_DM):
+        cat.append("riwayat DM Ya di berkas dijawab TIDAK (keputusan pengguna: lama diagnosis tidak ada)")
+    if d["mata"] == "curiga":
+        cat.append("curiga gangguan penglihatan; visus Snellen dijawab Normal (keputusan pengguna)")
+    return ";".join(f"{k}={v}" for k, v in d.items()), xray, cat
+
+
 def olah(sumber: Path, maks: int = 0) -> tuple[list[list], list[str]]:
     from openpyxl import load_workbook
 
@@ -165,8 +260,17 @@ def olah(sumber: Path, maks: int = 0) -> tuple[list[list], list[str]]:
         if nama != nama_asli:
             catatan.append(f"baris {r} · {nik} · nama dirapikan: {nama_asli!r} -> {nama!r}")
 
+        hadir = ws.cell(row=r, column=S_HADIR).value
+        if hadir is False or str(hadir).strip().lower() in ("false", "tidak", "tidak hadir"):
+            catatan.append(f"baris {r} · {nik} · {nama_asli} · DILEWATI: tidak hadir")
+            continue
+
         lahir_berkas = _tanggal(ws.cell(row=r, column=S_LAHIR).value)
         lahir_nik, kelamin_nik = dari_nik(nik)
+        if not 11 <= int(nik[:2]) <= 94:
+            catatan.append(f"baris {r} · {nik} · {nama_asli} · DIBUANG, NIK CACAT: "
+                           f"kode provinsi {nik[:2]} tidak ada (yang sah 11-94)")
+            continue
         # NIK yang digit tanggalnya MUSTAHIL bukan NIK - aturan tetapnya jelas:
         # NIK yang salah jangan dimasukkan. Dulu ia lolos, sebab tanggal lahir
         # dari berkas dipakai sebagai cadangan; hasilnya seorang peserta (18 Sep,
@@ -179,6 +283,19 @@ def olah(sumber: Path, maks: int = 0) -> tuple[list[list], list[str]]:
         lahir = lahir_berkas or lahir_nik
         if not lahir:
             catatan.append(f"baris {r} · {nik} · {nama} · DIBUANG: tanggal lahir tak terbaca")
+            continue
+        jk_awal = _teks(ws, r, S_JK).replace(" ", "").lower()
+        kelamin_awal = ("Laki-laki" if jk_awal.startswith("laki")
+                        else "Perempuan" if jk_awal.startswith("perempuan") else "")
+        # TANGGAL LAHIR DAN JENIS KELAMIN SAMA-SAMA TIDAK COCOK dengan NIK:
+        # kemungkinan besar NIK itu milik orang lain (mis. NIK istri tertulis
+        # di baris suaminya). Aturan tetapnya: NIK yang mungkin menunjuk orang
+        # lain tidak pernah dikirim - satu salah saja masih wajar salah ketik.
+        if (lahir_nik and lahir_berkas and lahir_nik != lahir_berkas
+                and kelamin_nik and kelamin_awal and kelamin_nik != kelamin_awal):
+            catatan.append(f"baris {r} · {nik} · {nama} · DIBUANG: tanggal lahir "
+                           f"({lahir_berkas:%d/%m/%Y} vs NIK {lahir_nik:%d/%m/%Y}) DAN jenis kelamin "
+                           f"({kelamin_awal} vs NIK {kelamin_nik}) tidak cocok - NIK mungkin milik orang lain")
             continue
         if lahir_nik and lahir_berkas and lahir_nik != lahir_berkas:
             catatan.append(f"baris {r} · {nik} · {nama} · tanggal lahir DISESUAIKAN ke NIK: "
@@ -252,8 +369,11 @@ def olah(sumber: Path, maks: int = 0) -> tuple[list[list], list[str]]:
         periodontal = "Tidak Normal" if "dicabut" in gigi else "Normal"
         tbc = ("Tidak Normal" if "ada gejala" in _teks(ws, r, S_KESIMPULAN).lower()
                and not _teks(ws, r, S_KESIMPULAN).lower().startswith("tidak") else "Normal")
+        rinci, xray, cat_rinci = _rinci(ws, r)
+        for c in cat_rinci:
+            catatan.append(f"baris {r} · {nik} · {nama} · {c}")
 
-        baris = [""] * 34
+        baris = [""] * 35
         baris[0] = str(len(keluaran) + 1)
         baris[1] = nik
         baris[2] = nama
@@ -274,8 +394,10 @@ def olah(sumber: Path, maks: int = 0) -> tuple[list[list], list[str]]:
         baris[22] = karies
         baris[23] = periodontal
         baris[28] = tbc
+        baris[34] = rinci
         for kolom, nilai in TETAP.items():
             baris[kolom - 1] = nilai
+        baris[27] = xray
         keluaran.append(baris)
         if maks and len(keluaran) >= maks:
             break

@@ -481,6 +481,9 @@ PARAM_REAL = {
     25: "tropis_a", 26: "tropis_b", 27: "tropis_c",
     28: "tb_a", 29: "tb_b", 30: "kesehatan_jiwa", 31: "geriatri",
     32: "puma", 33: "kanker_payudara", 34: "iva",
+    # Kolom 35 (opsional): temuan per pertanyaan "kunci=nilai;..." dari
+    # ambil_data_skrining_tb - dijawab robot sesuai data (form.aturan_rinci).
+    35: "rinci",
 }
 
 PETA_PARAM = {

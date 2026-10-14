@@ -58,6 +58,8 @@ halaman web lokal (`localhost:8765`).
 - **Pembaruan dari dalam aplikasi:** admin *Terbitkan pembaruan* → petugas melihat pita
   **Versi baru tersedia** → *Perbarui sekarang*: unduh → cek SHA-256 → cadangkan → pasang → mulai ulang.
   Tombol **Periksa pembaruan** + pemeriksaan otomatis tiap jam. Data & pengaturan tidak disentuh.
+- **Skrining TBC diisi sesuai temuan** (batuk, gejala, rontgen, kontak, mata, telinga, gigi, merokok, DM) dari
+  kolom `rinci` yang ditulis pengekstrak lembar Skrining TBC.
 - **Pengumuman admin sampai saat robot bekerja:** aplikasi menanyakan pengumuman tiap 2 menit (server paling
   sering sekali per 90 detik). Isi baru → kotak *Pengumuman baru dari admin*, notifikasi Windows, judul tab
   berkedip; sekali per isi. Akun yang dinonaktifkan di tengah batch diberi tahu (batch berjalan tetap selesai).
@@ -153,6 +155,21 @@ SQL Supabase dijalankan sekali, berurutan: `skema.sql` → `tambahan-website.sql
 ---
 
 ## Riwayat perubahan
+
+### 14 Okt 2026 — skrining TBC diisi sesuai data (belum dirilis, menunggu uji di portal)
+- **Temuan skrining TBC dijawab sesuai data**, bukan lagi Normal/Tidak untuk semua: batuk (lebih/kurang dari
+  2 minggu), BB turun, demam, keringat malam, kelenjar, radiografi toraks + **hasil rontgen** (Normal / Abnormal TBC /
+  Abnormal non TBC), kontak TBC (serumah/erat), jenis TBC indeks, metode dahak, serumen, tajam penglihatan, karies,
+  gigi hilang, merokok (+ jenis rokok, paparan asap), riwayat DM. Bunyi pertanyaan & pilihan dibaca dari form portal.
+- Pengekstrak skrining TBC menulis kolom 35 `rinci`; `form.aturan_rinci()` memetakannya ke pertanyaan (radio,
+  dropdown, kolom angka). Pilihan yang tidak ditemukan dibiarkan kosong (terlapor), tidak ditebak. Pertanyaan tidak
+  wajib tanpa data (lama merokok, batang/hari, kadar CO) dikosongkan, tidak diisi 0.
+- Isian wajib yang tidak ada di berkas mengikuti keputusan pengguna: indeks Bakteriologis, dahak "Tidak dilakukan",
+  perokok = rokok konvensional & terpapar asap, visus Snellen Normal, riwayat DM dijawab Tidak.
+- NIK dibuang bila tanggal lahir **dan** jenis kelamin sama-sama tidak cocok (mungkin NIK orang lain); pesan
+  kode provinsi tidak sah diperjelas; peserta "tidak hadir" dilewati.
+- Pengisian form: lintasan ketiga untuk pertanyaan lanjutan, berhenti begitu tidak ada yang baru.
+- Komentar kode: dua nama peserta yang tertinggal disamarkan.
 
 ### 2026.10.13.0840
 - **Admin mengubah data petugas**: Kelola Petugas → Lainnya → *Ubah data petugas* (nama, puskesmas, no. HP,

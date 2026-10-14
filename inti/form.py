@@ -69,6 +69,21 @@ PILIH_RADIO = """(p) => {
     const soal = rapi(q.innerText);
     let pilih = null;
 
+    // JAWABAN DARI DATA (kolom "rinci" CSV, lihat aturan_rinci di Python).
+    // Dicocokkan ke JUDUL pertanyaan saja - teks pilihan tidak ikut, supaya
+    // pilihan "Normal (visus ...)" tidak terbaca sebagai pertanyaan visus.
+    // opsi null = sengaja dibiarkan kosong (tidak wajib & tidak ada datanya).
+    // Pilihan yang dicari tidak ada = dibiarkan kosong, BUKAN ditebak: form
+    // itu lalu terlapor "soal radio kosong" dan bisa diperiksa.
+    const judulQ = rapi((q.querySelector('.sd-question__title') || q).innerText);
+    const aturan = (p.jawaban || []).find(a => new RegExp(a.soal, 'i').test(judulQ));
+    if (aturan) {
+      if (aturan.opsi === null) return;
+      pilih = cari(new RegExp(aturan.opsi, 'i'));
+      if (pilih) hasil.push({id: pilih.id, soal: soal.slice(0, 60), jawab: pilih.teks.slice(0, 40)});
+      return;
+    }
+
     if (/dilakukan\\s*pemeriksaan|melakukan\\s*pemeriksaan|pemeriksaan\\s*antropometri|pemeriksaan\\s*gula|pemeriksaan\\s*tekanan/i.test(soal)
         && !/pernah|riwayat/i.test(soal)
         && !/radiograf|toraks|thoraks|rontgen|x-?ray/i.test(soal)) {
@@ -164,6 +179,11 @@ NILAI_ANGKA = """(p) => {
     const q = el.closest('.sd-question');
     const label = q ? (q.innerText || '').toLowerCase() : '';
     let v = null;
+    // Kolom angka yang menurut data harus kosong (mis. jumlah batang rokok,
+    // kadar CO - tidak wajib dan tidak ada di berkas). Tanpa ini cabang
+    // "lain-lain" di bawah mengisinya 0, angka yang tidak pernah diukur.
+    const judulQ = q ? ((q.querySelector('.sd-question__title') || q).innerText || '') : '';
+    if ((p.jawaban || []).some(a => a.opsi === null && new RegExp(a.soal, 'i').test(judulQ))) return;
     if (/gizi|antropometri/.test(ctx)) {
       if (/berat/.test(label)) v = p.bb;
       // "PANJANG BADAN", bukan tinggi: bayi diukur berbaring, dan form
@@ -239,6 +259,15 @@ NILAI_ANGKA = """(p) => {
 }"""
 
 
+# Judul pertanyaan milik dropdown ke-i (untuk jawaban dari data).
+JUDUL_DROPDOWN = """(i) => {
+  const dd = document.querySelectorAll('.sd-dropdown')[i];
+  const q = dd && dd.closest('.sd-question');
+  const j = q && (q.querySelector('.sd-question__title') || q);
+  return j ? (j.innerText || '').replace(/\\s+/g, ' ').trim() : '';
+}"""
+
+
 # Pilihan yang diinginkan untuk satu dropdown, dilihat dari BUNYI PERTANYAANNYA.
 # Perlu per-pertanyaan, bukan per-indeks: form Telinga & Mata sekolah memisahkan
 # kanan dan kiri (Q9 vs Q10), sedangkan CSV hanya punya SATU kolom visus yang
@@ -305,6 +334,72 @@ def _visus(p: dict) -> str:
     return "Normal"
 
 
+# Bunyi pertanyaan & pilihan DIBACA dari form portal (form.kemkes.go.id,
+# 14 Okt 2026): Faktor Risiko TB - Mandiri, Faktor Risiko dan Skrining X-Ray TB,
+# Pemeriksaan Tuberkulosis, Skrining Telinga dan Mata, Karies dan Gigi Hilang,
+# Perilaku Merokok, Pemeriksaan Gula Darah. Pola sederhana yang sama artinya
+# di JavaScript dan Python. Urutan penting: yang pertama cocok yang dipakai.
+_YA, _TIDAK = r"^ya$", r"^tidak$"
+
+
+def aturan_rinci(teks: str) -> list[dict]:
+    """
+    "kunci=nilai;..." (kolom 35 CSV) -> [{soal: pola judul, opsi: pola pilihan | None}].
+
+    opsi None = pertanyaan itu sengaja dibiarkan kosong. Daftar kosong bila
+    pesertanya tidak membawa rinci - perilaku lama tidak berubah sama sekali.
+    """
+    d = dict(x.split("=", 1) for x in str(teks or "").split(";") if "=" in x)
+    if not d:
+        return []
+    yt = lambda k: _YA if d.get(k) == "ya" else _TIDAK          # noqa: E731
+    a: list[tuple[str, str | None]] = []
+    if "batuk" in d:
+        a.append((r"batuk yang tidak sembuh", {"lebih": r"^ya,? lebih dari 2 minggu",
+                                               "kurang": r"^ya,? kurang dari 2 minggu"}.get(d["batuk"], r"^tidak batuk")))
+    for kunci, pola in (("bb_turun", r"berat badan.*turun|nafsu makan turun"),
+                        ("demam", r"demam hilang timbul"),
+                        ("keringat", r"berkeringat (di )?malam"),
+                        ("kelenjar", r"kelenjar getah bening")):
+        if kunci in d:
+            a.append((pola, yt(kunci)))
+    if "rontgen" in d:
+        dilakukan = d["rontgen"] != "tidak_dilakukan"
+        a.append((r"dilakukan pemeriksaan radiografi", _YA if dilakukan else _TIDAK))
+        if dilakukan:
+            a.append((r"hasil rontgen|foto toraks", {"abnormal_tbc": r"^abnormal tbc",
+                                                     "abnormal_non": r"^abnormal non"}.get(d["rontgen"], r"^normal")))
+    if "kontak" in d:
+        a.append((r"kontak dengan pasien tuberkulosis", {"serumah": r"kontak serumah",
+                                                          "erat": r"kontak erat"}.get(d["kontak"], r"^tidak ada")))
+    if "indeks" in d:
+        a.append((r"je?a?nis tbc dari pasien|jenis tbc", r"^klinis" if d["indeks"] == "klinis" else r"^bakteriologis"))
+    if d.get("dahak") == "tidak_dilakukan":
+        a.append((r"metode pemeriksaan", r"^tidak dilakukan"))
+    if "serumen" in d:
+        a.append((r"serumen impaksi", r"^ada serumen" if d["serumen"] == "ada" else r"^tidak ada serumen"))
+    if "mata" in d:
+        a.append((r"snellen", r"^normal"))
+        a.append((r"tajam penglihatan", r"^curiga gangguan penglihatan" if d["mata"] == "curiga" else r"^normal"))
+    if "karies" in d:
+        a.append((r"gigi karies", yt("karies")))
+    if "gigi_hilang" in d:
+        a.append((r"gigi hilang|gigi dicabut", yt("gigi_hilang")))
+    if "rokok" in d:
+        a.append((r"merokok dalam setahun", yt("rokok")))
+        if d["rokok"] == "ya":
+            a.append((r"jenis rokok", r"^rokok konvensional"))
+            a.append((r"berapa tahun anda merokok", None))
+            a.append((r"batang rokok", None))
+    if "asap" in d:
+        a.append((r"terpapar asap rokok", yt("asap")))
+    if "rokok" in d:
+        a.append((r"kadar co", None))
+    if "dm" in d:
+        a.append((r"dinyatakan diabetes|kencing manis oleh dokter", yt("dm")))
+    return [{"soal": s, "opsi": o} for s, o in a]
+
+
 def _nilai(orang) -> dict:
     """
     Angka dan parameter peserta yang dibutuhkan skrip di atas.
@@ -328,6 +423,7 @@ def _nilai(orang) -> dict:
         "sistole": orang.sistole, "diastole": orang.diastole,
         "gds": orang.gds,
         "param": p.get("geriatri", "Normal"),
+        "jawaban": aturan_rinci(p.get("rinci", "")),
     }
     # BALITA memakai angka tubuhnya sendiri. Tanpa ini, `orang.bb`/`orang.tb`
     # menurunkan ukuran ORANG DEWASA dari parameter gizi - anak satu tahun
@@ -443,6 +539,7 @@ def jawab_dropdown(halaman, orang) -> int:
     beberapa popup bisa terbuka bersamaan dan pemilih global bisa salah sasaran.
     """
     konteks = (halaman.inner_text("body") or "").lower()
+    nilai = _nilai(orang)
     aktivitas = "aktivitas fisik" in konteks
     tekanan = "tekanan darah" in konteks
 
@@ -472,6 +569,36 @@ def jawab_dropdown(halaman, orang) -> int:
             khas = halaman.evaluate(PILIHAN_SEKOLAH, [_nilai(orang), i]) or ""
         except Exception:
             khas = ""
+        # Jawaban dari data (kolom "rinci"): dicocokkan ke judul pertanyaan
+        # dropdown ini. Pilihan yang tidak ditemukan TIDAK ditebak.
+        aturan = None
+        if nilai.get("jawaban"):
+            try:
+                judul = halaman.evaluate(JUDUL_DROPDOWN, i) or ""
+            except Exception:
+                judul = ""
+            aturan = next((a for a in nilai["jawaban"] if re.search(a["soal"], judul, re.I)), None)
+        if aturan:
+            pola = aturan["opsi"]
+            opsi = halaman.locator('[role="option"]')
+            pilih = None
+            for j in range(min(opsi.count(), 40)):
+                satu = opsi.nth(j)
+                try:
+                    if satu.is_visible() and pola and re.search(pola, (satu.inner_text() or "").strip(), re.I):
+                        pilih = satu
+                        break
+                except Exception:
+                    continue
+            if pilih is None:
+                break
+            try:
+                pilih.click(timeout=3_000)
+                terjawab += 1
+                halaman.wait_for_timeout(500)
+            except Exception:
+                break
+            continue
         if khas:
             kunci = (khas,)
         elif aktivitas and i == 0:
@@ -577,11 +704,15 @@ def isi_satu_form(halaman, orang, timpa: bool = False) -> str:
     if not tunggu_siap(halaman):
         return "stuck" if stuck(halaman) else "form tidak ter-render"
 
-    # Dua lintasan: sebagian pertanyaan baru muncul setelah pertanyaan
-    # sebelumnya dijawab, jadi sekali jalan tidak cukup.
-    for _ in range(2):
-        jawab_radio(halaman, orang, timpa)
-        jawab_dropdown(halaman, orang)
+    # Beberapa lintasan: sebagian pertanyaan baru muncul setelah pertanyaan
+    # sebelumnya dijawab (merokok -> jenis rokok; radiografi -> hasil rontgen;
+    # kontak -> jenis TBC indeks), jadi sekali jalan tidak cukup.
+    # Berhenti begitu satu lintasan tidak menjawab apa pun - tanpa itu lintasan
+    # ketiga menambah jeda di SETIAP form setiap peserta.
+    for putaran in range(3):
+        dijawab = jawab_radio(halaman, orang, timpa) + jawab_dropdown(halaman, orang)
+        if putaran and not dijawab:
+            break
         halaman.wait_for_timeout(500)
     isi_angka(halaman, orang)
 

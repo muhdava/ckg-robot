@@ -731,8 +731,8 @@ def cari_baris(halaman, orang: Peserta, hasil: dict):
     Dukcapil, dan itu kerap berbeda dari CSV - beda huruf besar-kecil, beda
     gelar, "M. ADI" lawan "Muhammad Adi". Mencocokkan `tr:has-text(nama)`
     saja membuat peserta yang barisnya JELAS ADA di layar dinyatakan tidak ada;
-    pada jalan skrining TBC 7 Sep itu menimpa Taufiq Nurhalim, Sakim, dan
-    kawan-kawan - padahal langkah pendaftaran mereka sendiri sudah mencatat
+    pada jalan skrining TBC 7 Sep itu menimpa beberapa peserta sekaligus
+    - padahal langkah pendaftaran mereka sendiri sudah mencatat
     "nama beda, dipakai satu-satunya baris hasil NIK".
 
     Karena itu ada jalan kedua: bila tabel ini SUDAH DISARING lewat NIK -
