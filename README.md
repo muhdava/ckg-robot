@@ -156,6 +156,12 @@ SQL Supabase dijalankan sekali, berurutan: `skema.sql` → `tambahan-website.sql
 
 ## Riwayat perubahan
 
+### 14 Okt 2026 (sesudah 1134, belum dirilis)
+- **"Sudah dimulai" kini harus ada buktinya** (tombol Tanggal Pemeriksaan / Selesaikan Layanan). Dulu tombol
+  Mulai Pemeriksaan yang terlambat dirender dianggap "sudah dimulai"; robot menyapu form Nakes yang terkunci
+  sampai belasan menit dan petugas harus menekan Mulai sendiri. Kepala halaman tak terbaca -> muat ulang sekali.
+- Percobaan ulang: bila Mulai Pemeriksaan tetap gagal, form Nakes tidak disapu (langsung gagal_mulai, diulang nanti).
+
 ### 2026.10.14.1134 — skrining TBC diisi sesuai data, robot lebih tahan gangguan
 - **Temuan skrining TBC dijawab sesuai data**, bukan lagi Normal/Tidak untuk semua: batuk (lebih/kurang dari
   2 minggu), BB turun, demam, keringat malam, kelenjar, radiografi toraks + **hasil rontgen** (Normal / Abnormal TBC /

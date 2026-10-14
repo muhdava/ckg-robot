@@ -154,7 +154,11 @@ def _ulangi_dari_layanan(halaman, orang, r: dict, sekolahan: bool,
         try:
             if halaman.evaluate(layanan.TOMBOL_MULAI):
                 r["keterangan"] += " | 'Mulai Pemeriksaan' masih ada - ditekan lagi"
-                layanan.mulai_pemeriksaan(halaman, orang, r, jejak_layanan)
+                if not layanan.mulai_pemeriksaan(halaman, orang, r, jejak_layanan):
+                    # Form Nakes masih terkunci: menyapunya cuma menghabiskan
+                    # waktu tunggu tiap form (browser tertahan belasan menit).
+                    r["status"] = "gagal_mulai"
+                    return
         except Exception as e:
             r["keterangan"] += f" | mulai ulang gagal ({type(e).__name__})"
         layanan.petakan_layanan(halaman, r, jejak_layanan)

@@ -416,6 +416,10 @@ JS_KONFIRMASI_SIAP = r"""() => {
 }"""
 JS_KALENDER_TERBUKA = ("() => (document.body.innerText || '')"
                        ".includes('Konfirmasi Tanggal Pemeriksaan')")
+# Bukti pemeriksaan SUDAH dimulai (atau sudah ditutup): tombol kepala halaman
+# yang hanya ada sesudah "Mulai Pemeriksaan" ditekan.
+JS_SUDAH_DIMULAI = portal.js_atau(portal.js_ada_tombol("Selesaikan Layanan"),
+                                  portal.js_ada_tombol("Tanggal Pemeriksaan"))
 
 
 def mulai_pemeriksaan(halaman, orang: Peserta, hasil: dict, jejak: list) -> bool:
@@ -472,11 +476,35 @@ def mulai_pemeriksaan(halaman, orang: Peserta, hasil: dict, jejak: list) -> bool
     portal.tunggu_siap(halaman, portal.js_dan(portal.JS_TIDAK_MEMUAT,
                                               portal.ADA_BARIS_LAYANAN),
                        6_000, "daftar layanan siap sebelum Mulai Pemeriksaan")
+    # "SUDAH DIMULAI" HARUS ADA BUKTINYA, bukan sekadar tombol Mulai tidak
+    # terlihat. Tombol-tombol kepala halaman dirender SESUDAH daftar layanan;
+    # dicek sekali terlalu cepat, tombol Mulai belum ada lalu disimpulkan
+    # "sudah dimulai" - robot menyapu form Nakes yang masih TERKUNCI satu per
+    # satu sampai habis waktunya, dan petugas harus menekan Mulai Pemeriksaan
+    # sendiri (14 Okt 2026: dua kali, salah satunya browser tertahan 17 menit).
+    # Bukti sudah dimulai: tombol "Tanggal Pemeriksaan" / "Selesaikan Layanan"
+    # (yang terakhir tetap ada, mati, sesudah pemeriksaan ditutup).
+    portal.tunggu_kondisi(halaman, portal.js_atau(TOMBOL_MULAI, JS_SUDAH_DIMULAI), 15_000)
     if not halaman.evaluate(TOMBOL_MULAI):
-        # Peserta di tab "Sedang Pemeriksaan" memang sudah dimulai - tombolnya
-        # tidak ada, dan yang tersisa hanya menyapu daftar layanannya.
-        hasil["keterangan"] += " | 'Mulai Pemeriksaan' tidak ada (sudah dimulai)"
-        return True
+        if halaman.evaluate(JS_SUDAH_DIMULAI):
+            # Peserta di tab "Sedang Pemeriksaan" memang sudah dimulai - yang
+            # tersisa hanya menyapu daftar layanannya.
+            hasil["keterangan"] += " | 'Mulai Pemeriksaan' tidak ada (sudah dimulai)"
+            return True
+        # Tidak ada tombol Mulai, tidak ada bukti sudah dimulai: kepala halaman
+        # belum terbaca. Muat ulang sekali; tetap tak jelas = jangan menyapu.
+        try:
+            halaman.reload(wait_until="domcontentloaded")
+        except Exception:
+            pass
+        portal.tunggu_kondisi(halaman, portal.js_atau(TOMBOL_MULAI, JS_SUDAH_DIMULAI), 15_000)
+        if not halaman.evaluate(TOMBOL_MULAI):
+            if halaman.evaluate(JS_SUDAH_DIMULAI):
+                hasil["keterangan"] += " | 'Mulai Pemeriksaan' tidak ada (sudah dimulai, sesudah muat ulang)"
+                return True
+            hasil["keterangan"] += " | status pemeriksaan tak terbaca (tombol Mulai maupun Selesaikan tidak ada)"
+            simpan_gambar(halaman, f"mulai_{orang.baris_csv}")
+            return False
     if not portal.klik_tombol(halaman, "Mulai Pemeriksaan", timeout=6_000):
         hasil["keterangan"] += " | 'Mulai Pemeriksaan' ada tapi tak bisa diklik"
         simpan_gambar(halaman, f"mulai_{orang.baris_csv}")
