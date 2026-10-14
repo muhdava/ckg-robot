@@ -545,8 +545,21 @@ def _coba_peserta(halaman, orang, kerja, jejak: list, jejak_layanan: list,
         # tertinggal.
         if (percobaan > 1 or r_awal) and _sampai_daftar_layanan(halaman, r):
             # Sudah pernah masuk daftar layanan -> jangan mendaftar ulang.
-            _ulangi_dari_layanan(halaman, orang, r, sekolahan,
-                                 jejak_layanan, percobaan)
+            #
+            # DIBUNGKUS SEPERTI _kerjakan_satu. Dulu galat di sini tidak
+            # tertangkap: 14 Okt 2026 internet putus sesaat tepat di percobaan
+            # ke-2 (goto halaman pelayanan -> net::ERR_NAME_NOT_RESOLVED), dan
+            # galatnya naik sampai MENGHENTIKAN kedua browser pekerja di 76/81 -
+            # bukannya dicatat "error", ditunggu, lalu dicoba lagi.
+            try:
+                _ulangi_dari_layanan(halaman, orang, r, sekolahan,
+                                     jejak_layanan, percobaan)
+            except Exception as e:
+                gambar = simpan_gambar(halaman, f"error_{orang.baris_csv}")
+                r["status"] = "error"
+                r["keterangan"] = (r.get("keterangan", "")
+                                   + f" | {type(e).__name__}: " + " ".join(str(e).split())[:300])
+                kerja.lapor(f"    ERROR saat diulang — bukti disimpan: {gambar}")
         else:
             r = _kerjakan_satu(halaman, orang, sekolahan, kerja,
                                jejak, jejak_layanan)

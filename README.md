@@ -170,6 +170,11 @@ SQL Supabase dijalankan sekali, berurutan: `skema.sql` → `tambahan-website.sql
   kode provinsi tidak sah diperjelas; peserta "tidak hadir" dilewati.
 - Pengisian form: lintasan ketiga untuk pertanyaan lanjutan, berhenti begitu tidak ada yang baru.
 - Komentar kode: dua nama peserta yang tertinggal disamarkan.
+- **Internet putus saat percobaan ulang tidak lagi menghentikan browser pekerja.** Galat di jalur "lanjutkan dari
+  daftar layanan" (percobaan ke-2/3 dan putaran ulang akhir batch) kini dicatat `error`, ditunggu jaringannya, lalu
+  dicoba lagi. Sebelumnya `net::ERR_NAME_NOT_RESOLVED` menghentikan kedua browser di 76/81 (uji jalan 14 Okt).
+- Soal yang sengaja dikosongkan (mis. lama merokok) tidak lagi dilaporkan "soal radio kosong".
+- Uji jalan 14 Okt (data TBC 13 Okt): 26 tuntas, 47 sudah_pelayanan, form terkirim sesuai data.
 
 ### 2026.10.13.0840
 - **Admin mengubah data petugas**: Kelola Petugas → Lainnya → *Ubah data petugas* (nama, puskesmas, no. HP,

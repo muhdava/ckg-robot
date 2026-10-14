@@ -716,11 +716,19 @@ def isi_satu_form(halaman, orang, timpa: bool = False) -> str:
         halaman.wait_for_timeout(500)
     isi_angka(halaman, orang)
 
+    # Soal yang SENGAJA dikosongkan (aturan data opsi None, mis. "sudah berapa
+    # tahun merokok") tidak dihitung: dulu sembilan perokok tercatat "terkirim
+    # tapi 1 soal radio kosong" padahal formnya diterima dan memang begitu
+    # maksudnya (14 Okt 2026).
+    lewati = [a["soal"] for a in _nilai(orang).get("jawaban", []) if a["opsi"] is None]
     sisa = halaman.evaluate(
-        """() => [...document.querySelectorAll('[id^="sq_"]')].filter(q => {
+        """(lewati) => [...document.querySelectorAll('[id^="sq_"]')].filter(q => {
              const r = [...q.querySelectorAll('input[type=radio]')];
-             return r.length && !r.some(x => x.checked);
-           }).length"""
+             if (!r.length || r.some(x => x.checked)) return false;
+             const j = ((q.querySelector('.sd-question__title') || q).innerText || '');
+             return !lewati.some(s => new RegExp(s, 'i').test(j));
+           }).length""",
+        lewati,
     )
     if not kirim(halaman):
         return f"tombol Kirim tidak ada (sisa {sisa} soal)"
