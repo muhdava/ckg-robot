@@ -156,7 +156,7 @@ SQL Supabase dijalankan sekali, berurutan: `skema.sql` → `tambahan-website.sql
 
 ## Riwayat perubahan
 
-### 14 Okt 2026 — skrining TBC diisi sesuai data (belum dirilis, menunggu uji di portal)
+### 2026.10.14.1134 — skrining TBC diisi sesuai data, robot lebih tahan gangguan
 - **Temuan skrining TBC dijawab sesuai data**, bukan lagi Normal/Tidak untuk semua: batuk (lebih/kurang dari
   2 minggu), BB turun, demam, keringat malam, kelenjar, radiografi toraks + **hasil rontgen** (Normal / Abnormal TBC /
   Abnormal non TBC), kontak TBC (serumah/erat), jenis TBC indeks, metode dahak, serumen, tajam penglihatan, karies,
