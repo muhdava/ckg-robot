@@ -147,6 +147,16 @@ def _ulangi_dari_layanan(halaman, orang, r: dict, sekolahan: bool,
                                8_000, "daftar layanan sesudah muat ulang")
         except Exception as e:
             r["keterangan"] += f" | muat ulang gagal ({type(e).__name__})"
+        # PEMERIKSAAN YANG BELUM JADI DIMULAI DIMULAI DULU. Tanpa ini percobaan
+        # ke-2 menyapu form yang masih TERKUNCI ("form tidak ter-render") dan
+        # gagal persis sama - 14 Okt 2026 petugas sampai menekan "Mulai
+        # Pemeriksaan" sendiri. Tombolnya masih ada = belum dimulai.
+        try:
+            if halaman.evaluate(layanan.TOMBOL_MULAI):
+                r["keterangan"] += " | 'Mulai Pemeriksaan' masih ada - ditekan lagi"
+                layanan.mulai_pemeriksaan(halaman, orang, r, jejak_layanan)
+        except Exception as e:
+            r["keterangan"] += f" | mulai ulang gagal ({type(e).__name__})"
         layanan.petakan_layanan(halaman, r, jejak_layanan)
         layanan.sweep_layanan(halaman, orang, r, jejak_layanan)
         return

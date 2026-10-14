@@ -406,6 +406,17 @@ def konfirmasi_pada_baris(halaman, orang: Peserta, hasil: dict, jejak: list,
 # Satu-satunya penanda bahwa pemeriksaan BELUM dimulai: tombolnya masih ada.
 TOMBOL_MULAI = portal.js_ada_tombol("Mulai Pemeriksaan")
 
+# Kotak "Konfirmasi Tanggal Pemeriksaan" siap disetujui: portal tidak lagi
+# "Memproses data.." dan salah satu tombol setujunya terlihat DAN hidup.
+JS_KONFIRMASI_SIAP = r"""() => {
+  if (/Memproses data/i.test(document.body.innerText || '')) return false;
+  return [...document.querySelectorAll('button')].some(b =>
+    b.offsetParent !== null && !b.disabled
+    && ['Konfirmasi', 'Ya', 'Simpan', 'Mulai'].includes((b.innerText || '').trim()));
+}"""
+JS_KALENDER_TERBUKA = ("() => (document.body.innerText || '')"
+                       ".includes('Konfirmasi Tanggal Pemeriksaan')")
+
 
 def mulai_pemeriksaan(halaman, orang: Peserta, hasil: dict, jejak: list) -> bool:
     """
@@ -496,9 +507,30 @@ def mulai_pemeriksaan(halaman, orang: Peserta, hasil: dict, jejak: list) -> bool
     # Tombolnya ternyata "Simpan" - pilihan ketiga dalam antrean lama, sehingga
     # tiap peserta membuang 3 detik menunggu "Konfirmasi" lalu 3 detik menunggu
     # "Ya". Terukur pada 90 peserta di riwayat hasil.
-    dipakai = portal.klik_salah_satu(halaman, ("Konfirmasi", "Ya", "Simpan", "Mulai"), 3_000)
+    #
+    # TUNGGU TOMBOLNYA AKTIF, BUKAN SEKADAR ADA. Sesudah tanggal dipilih portal
+    # menampilkan "Memproses data.." dan selama itu "Simpan" ada tapi MATI.
+    # `klik_salah_satu` hanya menunggu tombolnya muncul, lalu menyerah begitu
+    # semuanya mati - pemeriksaan tidak jadi dimulai dan petugas harus menekan
+    # "Mulai Pemeriksaan" sendiri (14 Okt 2026, bukti hasil/gagal/mulai_36.png:
+    # tanggal 14 terpilih, "Memproses data..", Simpan abu-abu). Jadi ditunggu
+    # sampai prosesnya selesai dan tombolnya hidup; bila sesudah itu tetap
+    # mati, tanggalnya terlepas - dipilih lagi lalu dicoba lagi.
+    dipakai = ""
+    for coba in range(1, 4):
+        portal.tunggu_kondisi(halaman, JS_KONFIRMASI_SIAP, 15_000, 150)
+        dipakai = portal.klik_salah_satu(halaman, ("Konfirmasi", "Ya", "Simpan", "Mulai"), 3_000)
+        if dipakai:
+            break
+        if coba < 3 and halaman.evaluate(JS_KALENDER_TERBUKA):
+            tgl = portal.pilih_tanggal_pemeriksaan(halaman)
+            hasil["keterangan"] += (f" | Simpan belum aktif - tanggal dipilih ulang ({tgl or 'gagal'})")
     if dipakai:
         hasil["keterangan"] += f" | konfirmasi tanggal: {dipakai}"
+        if coba > 1:
+            hasil["keterangan"] += f" (percobaan ke-{coba})"
+    else:
+        hasil["keterangan"] += " | tombol Simpan tanggal pemeriksaan tidak pernah aktif"
     # Kuota 0 tetap boleh dipakai; portal cuma minta persetujuan sekali lagi.
     if portal.lewati_popup_kuota(halaman):
         hasil["keterangan"] += " | popup kuota habis: Lanjut"

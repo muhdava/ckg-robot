@@ -174,6 +174,9 @@ SQL Supabase dijalankan sekali, berurutan: `skema.sql` → `tambahan-website.sql
   daftar layanan" (percobaan ke-2/3 dan putaran ulang akhir batch) kini dicatat `error`, ditunggu jaringannya, lalu
   dicoba lagi. Sebelumnya `net::ERR_NAME_NOT_RESOLVED` menghentikan kedua browser di 76/81 (uji jalan 14 Okt).
 - Soal yang sengaja dikosongkan (mis. lama merokok) tidak lagi dilaporkan "soal radio kosong".
+- **"Mulai Pemeriksaan" tidak lagi gagal saat portal "Memproses data.."**: tombol Simpan tanggal pemeriksaan
+  ditunggu sampai AKTIF (dulu menyerah dalam 3 detik selagi masih mati); bila tetap mati, tanggal dipilih ulang (maks 3x).
+  Percobaan ke-2 juga menekan "Mulai Pemeriksaan" lagi bila tombolnya masih ada, bukan menyapu form yang terkunci.
 - Uji jalan 14 Okt (data TBC 13 Okt): 26 tuntas, 47 sudah_pelayanan, form terkirim sesuai data.
 
 ### 2026.10.13.0840
