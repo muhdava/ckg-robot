@@ -178,8 +178,14 @@ def _rinci(ws, r: int) -> tuple[str, str, list[str]]:
         # Satuannya HARI: di berkas 13 Okt 2026 ketiga peserta berkesimpulan
         # "Ada Gejala" batuk 15, 17, 23, sedangkan yang 2-8 tidak.
         if lama is None:
-            d["batuk"] = "kurang"
-            cat.append("batuk Ya tanpa lama batuk - dijawab 'kurang dari 2 minggu'")
+            # Lama batuk kosong (berkas 14 Okt: 10 orang). Kesimpulan skrining
+            # di berkas yang memutuskan: "Ada Gejala" = batuk >= 2 minggu
+            # (satu-satunya gejala di berkas itu), selain itu kurang.
+            kes = _teks(ws, r, S_KESIMPULAN).lower()
+            gejala = "ada gejala" in kes and not kes.startswith("tidak")
+            d["batuk"] = "lebih" if gejala else "kurang"
+            cat.append("batuk Ya tanpa lama batuk - dijawab '"
+                       + ("lebih" if gejala else "kurang") + " dari 2 minggu' menurut kesimpulan skrining")
         else:
             d["batuk"] = "lebih" if lama >= 14 else "kurang"
     else:
