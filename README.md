@@ -156,11 +156,12 @@ SQL Supabase dijalankan sekali, berurutan: `skema.sql` → `tambahan-website.sql
 
 ## Riwayat perubahan
 
-### 14 Okt 2026 (sesudah 1134, belum dirilis)
+### 2026.10.14.1303 — Mulai Pemeriksaan tidak lagi macet saat tombolnya terlambat muncul
 - **"Sudah dimulai" kini harus ada buktinya** (tombol Tanggal Pemeriksaan / Selesaikan Layanan). Dulu tombol
   Mulai Pemeriksaan yang terlambat dirender dianggap "sudah dimulai"; robot menyapu form Nakes yang terkunci
   sampai belasan menit dan petugas harus menekan Mulai sendiri. Kepala halaman tak terbaca -> muat ulang sekali.
 - Percobaan ulang: bila Mulai Pemeriksaan tetap gagal, form Nakes tidak disapu (langsung gagal_mulai, diulang nanti).
+- Skrining TBC: lama batuk yang kosong di berkas kini diputuskan dari kolom kesimpulan skrining.
 
 ### 2026.10.14.1134 — skrining TBC diisi sesuai data, robot lebih tahan gangguan
 - **Temuan skrining TBC dijawab sesuai data**, bukan lagi Normal/Tidak untuk semua: batuk (lebih/kurang dari
