@@ -156,6 +156,15 @@ SQL Supabase dijalankan sekali, berurutan: `skema.sql` → `tambahan-website.sql
 
 ## Riwayat perubahan
 
+### 15 Okt 2026 (sesudah 1303, belum dirilis)
+- **"Tuntas" kini harus terbukti di portal.** Sesudah Selesaikan Layanan, robot menunggu tombol Konfirmasi pada
+  dialog "Data Pemeriksaan akan Dikunci" benar-benar aktif (tidak lagi "Memproses data.."), lalu memastikan status
+  di kepala halaman berubah menjadi **Selesai Pemeriksaan** (muat ulang bila perlu, hingga 3 kali). Dulu Konfirmasi
+  yang ditekan selagi portal memproses tidak berbuat apa-apa, tetapi peserta tetap dicatat tuntas dan tertinggal
+  di tab Sedang/Belum Pemeriksaan. Yang tidak terbukti kini dicatat `layanan_sebagian` dan diulang.
+- Bukti "sudah dimulai" ditambah status kepala halaman (Sedang/Selesai Pemeriksaan): pada peserta yang sudah
+  selesai, "Selesaikan Layanan" dan "Tanggal Pemeriksaan" hanya tulisan, bukan tombol.
+
 ### 2026.10.14.1303 — Mulai Pemeriksaan tidak lagi macet saat tombolnya terlambat muncul
 - **"Sudah dimulai" kini harus ada buktinya** (tombol Tanggal Pemeriksaan / Selesaikan Layanan). Dulu tombol
   Mulai Pemeriksaan yang terlambat dirender dianggap "sudah dimulai"; robot menyapu form Nakes yang terkunci

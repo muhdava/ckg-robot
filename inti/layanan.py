@@ -418,8 +418,32 @@ JS_KALENDER_TERBUKA = ("() => (document.body.innerText || '')"
                        ".includes('Konfirmasi Tanggal Pemeriksaan')")
 # Bukti pemeriksaan SUDAH dimulai (atau sudah ditutup): tombol kepala halaman
 # yang hanya ada sesudah "Mulai Pemeriksaan" ditekan.
+# STATUS PESERTA di kepala halaman detail: "Belum / Sedang / Selesai
+# Pemeriksaan", tepat di bawah judul "Cek Kesehatan Gratis ...". Baris layanan
+# Nakes memakai kata yang sama, jadi yang diambil adalah yang PERTAMA sesudah
+# judul itu - kepala halaman letaknya di atas daftar. Kosong = tak terbaca.
+STATUS_PESERTA = r"""() => {
+  const rapi = s => (s || '').replace(/\s+/g, ' ').trim();
+  let judul = false, pertama = '';
+  for (const e of document.querySelectorAll('body *')) {
+    if (e.children.length || e.offsetParent === null) continue;
+    const t = rapi(e.innerText);
+    if (/^Cek Kesehatan Gratis/i.test(t)) { judul = true; continue; }
+    if (/^(Belum|Sedang|Selesai|Dalam) Pemeriksaan$/i.test(t)) {
+      if (judul) return t;
+      if (!pertama) pertama = t;
+    }
+  }
+  return pertama;
+}"""
+JS_STATUS_SELESAI = f"() => /^selesai/i.test(({STATUS_PESERTA})())"
+JS_STATUS_TERBACA = f"() => !!(({STATUS_PESERTA})())"
+# Status kepala ikut jadi bukti: pada murid yang SUDAH SELESAI, "Selesaikan
+# Layanan" dan "Tanggal Pemeriksaan" tinggal tulisan, bukan tombol (dilihat
+# langsung di portal 15 Okt 2026) - tanpa ini ia terbaca "belum dimulai".
 JS_SUDAH_DIMULAI = portal.js_atau(portal.js_ada_tombol("Selesaikan Layanan"),
-                                  portal.js_ada_tombol("Tanggal Pemeriksaan"))
+                                  portal.js_ada_tombol("Tanggal Pemeriksaan"),
+                                  f"() => /^(sedang|selesai)/i.test(({STATUS_PESERTA})())")
 
 
 def mulai_pemeriksaan(halaman, orang: Peserta, hasil: dict, jejak: list) -> bool:
@@ -1992,13 +2016,71 @@ def selesaikan_layanan(halaman, hasil: dict, jejak: list,
                                         " yang perlu ditutup - sudah selesai")
                 hasil["status"] = "sudah_pelayanan"
             return
-    halaman.wait_for_timeout(1500)
-    dipakai = portal.klik_salah_satu(halaman, ("Ya", "Selesai", "Konfirmasi", "Simpan"), 3_000)
-    if dipakai:
-        hasil["keterangan"] += f" | selesaikan: {dipakai}"
-    halaman.wait_for_timeout(3000)
-    _rekam(halaman, jejak, "16_selesaikan_layanan")
-    hasil["status"] = "tuntas"
+    if _konfirmasi_selesai(halaman, hasil, jejak):
+        hasil["status"] = "tuntas"
+    else:
+        # Bukan "tuntas": layanan_sebagian diulang di akhir jalan dan pada
+        # jalan berikutnya, sedangkan tuntas dilewati selamanya.
+        hasil["status"] = "layanan_sebagian"
+
+
+def _konfirmasi_selesai(halaman, hasil: dict, jejak: list) -> bool:
+    """
+    Tekan "Konfirmasi" pada dialog "Data Pemeriksaan akan Dikunci", lalu
+    BUKTIKAN portal menutupnya: status di kepala halaman "Selesai Pemeriksaan".
+
+    15 Okt 2026, SMP Ar Raudhah & Al-Irsyad (4 browser, portal padat): 8 murid
+    dicatat tuntas padahal rekaman halamannya sesudah Selesaikan masih "Sedang
+    Pemeriksaan" dengan tombol Selesaikan Layanan masih ada - di salah satunya
+    dialog konfirmasi masih bertulisan "Memproses data..". Konfirmasi yang
+    ditekan selagi portal memproses tidak berbuat apa-apa, dan dulu tidak ada
+    yang memeriksa hasilnya. Sama polanya dengan tombol Simpan pada Mulai
+    Pemeriksaan (13 Okt).
+    """
+    for coba in range(1, 4):
+        if coba > 1:
+            # Dialognya sudah tertutup (atau tak pernah muncul) - buka lagi.
+            if not portal.klik_tombol(halaman, "Selesaikan Layanan", timeout=6_000):
+                hasil["keterangan"] += " | tombol 'Selesaikan Layanan' tak bisa ditekan ulang"
+                break
+        portal.tunggu_kondisi(halaman, JS_KONFIRMASI_SIAP, 20_000, 200)
+        dipakai = portal.klik_salah_satu(halaman, ("Konfirmasi", "Ya", "Selesai", "Simpan"), 3_000)
+        if dipakai:
+            hasil["keterangan"] += f" | selesaikan: {dipakai}" + (f" (ke-{coba})" if coba > 1 else "")
+        if portal.tunggu_kondisi(halaman, JS_STATUS_SELESAI, 20_000, 300):
+            _rekam(halaman, jejak, "16_selesaikan_layanan")
+            return True
+        pesan = portal.tutup_popup_galat(halaman)
+        if pesan:
+            hasil["keterangan"] += f" | popup galat: {pesan}"
+        # Yang dipercaya keadaan portal sesudah dimuat ulang, bukan halaman
+        # yang mungkin masih menampilkan dialog/proses lama.
+        try:
+            halaman.reload(wait_until="domcontentloaded")
+        except Exception:
+            pass
+        portal.tunggu_kondisi(halaman, JS_STATUS_TERBACA, 20_000, 300)
+        status = halaman.evaluate(STATUS_PESERTA)
+        if status.lower().startswith("selesai"):
+            hasil["keterangan"] += " | ditutup (terbaca sesudah muat ulang)"
+            _rekam(halaman, jejak, "16_selesaikan_layanan")
+            return True
+        if not status and not halaman.evaluate(portal.js_ada_tombol("Selesaikan Layanan")):
+            # Kepala halaman tak terbaca, tapi tombolnya sudah tidak ada -
+            # aturan lama: portal hanya menghilangkannya sesudah ditutup.
+            hasil["keterangan"] += " | status kepala tak terbaca, tombol Selesaikan sudah hilang"
+            _rekam(halaman, jejak, "16_selesaikan_layanan")
+            return True
+        hasil["keterangan"] += (f" | sesudah Selesaikan status portal masih "
+                                f"'{status or 'tak terbaca'}' (percobaan {coba})")
+        _rekam(halaman, jejak, "16x_selesaikan_tak_tersimpan")
+        if status.lower().startswith("belum"):
+            # Pemeriksaannya belum dimulai di portal - menutup tidak mungkin;
+            # biar diulang dari awal (Mulai Pemeriksaan).
+            break
+        buka_kelompok(halaman)
+    simpan_gambar(halaman, f"selesaikan_{hasil.get('baris', '?')}")
+    return False
 
 
 def buka_dan_petakan(halaman, orang: Peserta, hasil: dict, jejak: list) -> None:
