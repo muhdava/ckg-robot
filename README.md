@@ -156,7 +156,7 @@ SQL Supabase dijalankan sekali, berurutan: `skema.sql` → `tambahan-website.sql
 
 ## Riwayat perubahan
 
-### 15 Okt 2026 (sesudah 1303, belum dirilis)
+### 2026.10.15.2240 — "tuntas" harus terbukti di portal, alur pelayanan menyapu yang tertinggal
 - **"Tuntas" kini harus terbukti di portal.** Sesudah Selesaikan Layanan, robot menunggu tombol Konfirmasi pada
   dialog "Data Pemeriksaan akan Dikunci" benar-benar aktif (tidak lagi "Memproses data.."), lalu memastikan status
   di kepala halaman berubah menjadi **Selesai Pemeriksaan** (muat ulang bila perlu, hingga 3 kali). Dulu Konfirmasi
