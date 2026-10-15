@@ -112,7 +112,16 @@ SELESAI = {"tuntas", "sudah_pelayanan", "ckg_umum",
            "ckg_sekolah", "puskesmas_berbeda"}
 
 
-def sudah_dikerjakan() -> tuple[set[str], dict[str, int]]:
+# DICEK ULANG pada alur pelayanan: "tuntas" adalah kesimpulan ROBOT, bukan
+# jawaban portal. 15 Okt 2026: peserta tercatat tuntas padahal Konfirmasi
+# Selesaikan Layanan tidak tersimpan - mereka tertinggal di tab Sedang/Belum
+# Pemeriksaan, dan tanpa pengecualian ini tidak bisa disapu lagi. Alur
+# pelayanan murah untuk yang memang selesai: ketemu di tab Selesai, dilewati.
+# Status lain di SELESAI tetap dilewati - itu jawaban portal sendiri.
+CEK_ULANG_PELAYANAN = {"tuntas"}
+
+
+def sudah_dikerjakan(cek_ulang: set[str] = frozenset()) -> tuple[set[str], dict[str, int]]:
     """
     Kumpulkan NIK yang sudah selesai dari SEMUA CSV hasil sebelumnya.
 
@@ -122,6 +131,7 @@ def sudah_dikerjakan() -> tuple[set[str], dict[str, int]]:
     """
     selesai: set[str] = set()
     rekap: dict[str, int] = {}
+    terakhir: dict[str, str] = {}
     if not config.HASIL.exists():
         return selesai, rekap
     for berkas in sorted(config.HASIL.glob("hasil-*.csv")):
@@ -135,8 +145,12 @@ def sudah_dikerjakan() -> tuple[set[str], dict[str, int]]:
             if not nik:
                 continue
             rekap[status] = rekap.get(status, 0) + 1
+            terakhir[nik] = status
             if status in SELESAI:
                 selesai.add(nik)
+    # Yang dicek ulang dinilai dari status TERAKHIR-nya: sapuan yang sudah
+    # membuktikannya selesai menulis sudah_pelayanan, dan sejak itu dilewati.
+    selesai -= {nik for nik, s in terakhir.items() if s in cek_ulang}
     return selesai, rekap
 
 
@@ -196,7 +210,8 @@ def buang_yang_selesai(batch: list) -> list:
     """Sisakan peserta yang memang masih perlu dikerjakan."""
     if not config.LEWATI_SUDAH_SELESAI:
         return batch
-    selesai, rekap = sudah_dikerjakan()
+    sapu = config.TAHAP in ("pelayanan", "pelayanan_sapu")
+    selesai, rekap = sudah_dikerjakan(CEK_ULANG_PELAYANAN if sapu else frozenset())
     if not selesai:
         return batch
     # `kunci`, bukan `nik`: bayi tanpa NIK semuanya ber-NIK kosong, dan
@@ -208,6 +223,8 @@ def buang_yang_selesai(batch: list) -> list:
           f"({', '.join(f'{k}={v}' for k, v in sorted(rekap.items()))})")
     if dilewati:
         print(f"         {dilewati} dari batch ini dilewati karena sudah selesai")
+    if sapu:
+        print("         alur pelayanan: peserta yang tercatat 'tuntas' DICEK ULANG ke portal")
     return sisa
 
 

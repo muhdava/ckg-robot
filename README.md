@@ -164,6 +164,10 @@ SQL Supabase dijalankan sekali, berurutan: `skema.sql` → `tambahan-website.sql
   di tab Sedang/Belum Pemeriksaan. Yang tidak terbukti kini dicatat `layanan_sebagian` dan diulang.
 - Bukti "sudah dimulai" ditambah status kepala halaman (Sedang/Selesai Pemeriksaan): pada peserta yang sudah
   selesai, "Selesaikan Layanan" dan "Tanggal Pemeriksaan" hanya tulisan, bukan tombol.
+- **Alur "Pelayanan → Selesai" kini menyapu yang tercatat "tuntas".** "Tuntas" adalah kesimpulan robot, bukan
+  jawaban portal, jadi pada alur pelayanan peserta itu dicek ulang: yang di tab Selesai dilewati (sudah_pelayanan),
+  yang tertinggal di Sedang/Belum dilanjutkan dan ditutup. Status jawaban portal (sudah dilayani, CKG Umum,
+  puskesmas/sekolah lain) tetap dilewati. Alur pendaftaran tidak berubah.
 
 ### 2026.10.14.1303 — Mulai Pemeriksaan tidak lagi macet saat tombolnya terlambat muncul
 - **"Sudah dimulai" kini harus ada buktinya** (tombol Tanggal Pemeriksaan / Selesaikan Layanan). Dulu tombol
