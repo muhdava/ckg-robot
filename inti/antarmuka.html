@@ -658,7 +658,8 @@ const JELAS = {
        + 'IKUT dicek ulang - cara menyapu yang tertinggal di tab Sedang/Belum Pemeriksaan.',
   pelayanan_sapu: 'Seperti Pelayanan → Selesai, tapi peserta di tab "Selesai Pemeriksaan" ikut dibuka '
        + 'lalu form yang masih kosong diisi. Portal menaruh orang di tab Selesai menurut status '
-       + 'orangnya, bukan kelengkapan formnya.',
+       + 'orangnya, bukan kelengkapan formnya. Peserta yang dulu dicatat "tuntas" oleh robot juga '
+       + 'dicek ulang. Form di pengaturan "timpa form" DIISI ULANG pada tiap peserta yang dibuka.',
 };
 function jelaskanAlur(){
   $('jelas-alur').textContent = JELAS[$('alur').value] || '';
