@@ -156,6 +156,11 @@ SQL Supabase dijalankan sekali, berurutan: `skema.sql` → `tambahan-website.sql
 
 ## Riwayat perubahan
 
+### 15 Okt 2026 (sesudah 2240, belum dirilis)
+- Katalog form CKG Umum dewasa & lansia: `panduan/KATALOG FORM DEWASA LANSIA.md` — daftar form per umur/jenis
+  kelamin (dibaca dari portal), cara robot menjawab tiap form, form Nakes yang sengaja tidak diisi, dan kolom
+  template real data yang benar-benar dipakai robot.
+
 ### 2026.10.15.2240 — "tuntas" harus terbukti di portal, alur pelayanan menyapu yang tertinggal
 - **"Tuntas" kini harus terbukti di portal.** Sesudah Selesaikan Layanan, robot menunggu tombol Konfirmasi pada
   dialog "Data Pemeriksaan akan Dikunci" benar-benar aktif (tidak lagi "Memproses data.."), lalu memastikan status
