@@ -76,6 +76,10 @@ Proyek ini dikerjakan dari **dua PC**. Repo ini (`muhdava/ckg-robot`) dan repo w
 
 ## Lingkungan pengembang
 
+PC kedua (G:) sejak 20 Okt 2026 punya Inno Setup 6 (`winget install --id JRSoftware.InnoSetup -e --scope user`),
+jadi bisa membuat Setup.exe; Chrome tidak ada, robot & `panduan/cetak.py` memakai Chromium Playwright.
+`buat_paket.bat` dari PowerShell: `cmd /c "echo t| \"<jalur lengkap>\buat_paket.bat\""`.
+
 ```
 pip install -r requirements-dev.txt
 python -m playwright install chromium

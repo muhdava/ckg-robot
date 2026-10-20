@@ -13,7 +13,7 @@ AKAR = Path(__file__).resolve().parent.parent
 # Versi aplikasi (tahun.bulan.tanggal, angka 2 digit). Dipakai login online:
 # admin bisa menolak versi yang lebih lama dari "versi minimal". Naikkan
 # setiap kali membuat paket yang perlu dipakai semua petugas.
-VERSI = "2026.10.15.2240"
+VERSI = "2026.10.20.2151"
 PROYEK = AKAR.parent
 DATA = AKAR / "data"
 # Tempat menaruh berkas MENTAH (.xlsx dari sekolah/puskesmas) yang belum

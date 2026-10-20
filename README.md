@@ -163,7 +163,10 @@ SQL Supabase dijalankan sekali, berurutan: `skema.sql` → `tambahan-website.sql
 
 ## Riwayat perubahan
 
-### 20 Okt 2026 — alur Tatalaksana Gigi (belum dirilis)
+### 2026.10.20.2151 — alur Tatalaksana Gigi
+Rilis pertama dari PC pengembang kedua (Setup dibuat dengan Inno Setup 6.7.3, Python bawaan 3.14.7).
+ZIP ini tidak membawa contoh `data-uji.csv` (folder `data\` tidak ada di repo); pengaturan tetap menunjuknya,
+seperti biasa petugas memilih berkasnya sendiri di aplikasi. Juga memuat katalog form 15 Okt di bawah.
 - **Alur baru "Tatalaksana Gigi"** (`inti/tatalaksana.py`): tanpa CSV. Robot membuka Daftar Tatalaksana,
   memasang filter 2026 → Gigi → Gigi berlubang, mengambil peserta teratas di tab *Belum Pencatatan
   Tatalaksana*, membuka detail (NIK dicocokkan dengan baris daftar), menekan *Mulai Tatalaksana*, mengisi form
@@ -194,7 +197,7 @@ SQL Supabase dijalankan sekali, berurutan: `skema.sql` → `tambahan-website.sql
   langkah memasang Git/gh lewat winget.
 - Demo website dibuat ulang: penjelasan alur pelayanan mengikuti rilis 2026.10.15.2240.
 
-### 15 Okt 2026 (sesudah 2240, belum dirilis)
+### 15 Okt 2026 (sesudah 2240, ikut rilis 2026.10.20.2151)
 - Katalog form CKG Umum dewasa & lansia: `panduan/KATALOG FORM DEWASA LANSIA.md` — daftar form per umur/jenis
   kelamin (dibaca dari portal), cara robot menjawab tiap form, form Nakes yang sengaja tidak diisi, dan kolom
   template real data yang benar-benar dipakai robot.
