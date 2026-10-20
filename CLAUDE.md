@@ -80,7 +80,18 @@ Butuh juga: Git, Google Chrome, Python 3.14 64-bit (versi ini yang dibundel Setu
 
 ## Menyiapkan PC pengembang baru
 
-Susunan folder harus **sama persis** di semua PC (nama folder memori Claude diturunkan dari jalurnya):
+Susunan di bawah folder induk harus **sama persis** di semua PC (nama subfolder dipakai `alat/` dan CLAUDE.md).
+Letak folder induk boleh berbeda per PC:
+
+| PC | Folder induk | Folder memori Claude |
+|---|---|---|
+| PC pertama | `D:\Project Claude Code\Macro RPA CKG\` | `D--Project-Claude-Code-Macro-RPA-CKG` |
+| PC kedua (D: kosong/tidak bisa ditulisi) | `G:\Project\CKG Robot\` | `G--Project-CKG-Robot` |
+
+Karena nama folder memori diturunkan dari jalur induk, memori Claude kedua PC terpisah. Salin manual bila perlu.
+Jalur relatif (`../Website CKG Robot`, `AKAR.parent` di `alat/`) tetap jalan di mana pun induknya.
+
+Contoh di PC pertama:
 
 ```
 D:\Project Claude Code\Macro RPA CKG\          <- dibuka di Claude Code
@@ -96,6 +107,10 @@ D:\Project Claude Code\Macro RPA CKG\          <- dibuka di Claude Code
 @Website CKG Robot/CLAUDE.md
 ```
 
-Memori Claude (opsional, sekali): salin folder
-`%USERPROFILE%\.claude\projects\D--Project-Claude-Code-Macro-RPA-CKG\memory` dari PC lama ke jalur yang
-sama di PC baru (Desktop pemilik ada di OneDrive, jadi bisa lewat OneDrive atau flashdisk).
+Memori Claude (opsional, sekali): salin isi folder `%USERPROFILE%\.claude\projects\<folder memori PC lama>\memory`
+ke `%USERPROFILE%\.claude\projects\<folder memori PC baru>\memory` (lihat tabel di atas). Desktop pemilik ada di
+OneDrive, jadi bisa lewat OneDrive atau flashdisk.
+
+Bila PC baru tidak punya Git: `winget install --id Git.Git -e` dan `winget install --id GitHub.cli -e`,
+lalu pemilik sendiri menjalankan `gh auth login` (repo website privat) dan `gh auth setup-git`.
+Google Chrome dan Inno Setup 6 belum terpasang di PC kedua (20 Okt 2026).

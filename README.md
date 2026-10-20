@@ -156,6 +156,11 @@ SQL Supabase dijalankan sekali, berurutan: `skema.sql` → `tambahan-website.sql
 
 ## Riwayat perubahan
 
+### 20 Okt 2026 — PC pengembang kedua (tanpa rilis)
+- `CLAUDE.md`: folder induk boleh berbeda per PC (PC kedua: `G:\Project\CKG Robot\`), tabel folder memori Claude,
+  langkah memasang Git/gh lewat winget.
+- Demo website dibuat ulang: penjelasan alur pelayanan mengikuti rilis 2026.10.15.2240.
+
 ### 15 Okt 2026 (sesudah 2240, belum dirilis)
 - Katalog form CKG Umum dewasa & lansia: `panduan/KATALOG FORM DEWASA LANSIA.md` — daftar form per umur/jenis
   kelamin (dibaca dari portal), cara robot menjawab tiap form, form Nakes yang sengaja tidak diisi, dan kolom
