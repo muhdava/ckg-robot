@@ -6,7 +6,7 @@ Cetak "Panduan CKG Robot.pdf" dari kepala.html + isi.html (gambar di gambar/).
 
 Dicetak dua kali: cetakan pertama untuk mencari halaman tiap bab, lalu nomor
 halaman daftar isi ({{A}} ... {{J}}) diisi dan dicetak ulang.
-Butuh Google Chrome, playwright, dan pymupdf (requirements-dev.txt).
+Butuh playwright dan pymupdf (requirements-dev.txt); Google Chrome bila ada, selain itu Chromium Playwright.
 Gambar harus berisi DATA REKAAN saja - diambil dari demo / server uji.
 """
 import re
@@ -30,7 +30,11 @@ KAKI = ('<div style="font-size:8px;color:#888;width:100%;text-align:center;font-
 def cetak(isi_html: str, tujuan: Path) -> None:
     HTML.write_text(isi_html, encoding="utf-8")
     with sync_playwright() as p:
-        b = p.chromium.launch(channel="chrome", headless=True)
+        try:
+            b = p.chromium.launch(channel="chrome", headless=True)
+        except Exception:
+            # Chrome tidak terpasang (PC pengembang kedua) -> Chromium bawaan Playwright.
+            b = p.chromium.launch(headless=True)
         h = b.new_page()
         h.goto(HTML.as_uri()); h.wait_for_load_state("networkidle")
         h.pdf(path=str(tujuan), format="A4", print_background=True, prefer_css_page_size=True,

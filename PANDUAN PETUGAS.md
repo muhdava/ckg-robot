@@ -145,6 +145,36 @@ dengan warna; lembar **Rekap** berisi jumlah tiap status dan totalnya.
 > setiap kali kamu menekan "Buka browser & mulai" lagi. Riwayat lengkapnya
 > tetap tersimpan sebagai CSV di folder `hasil\`.
 
+### Alur khusus: Tatalaksana Gigi (tanpa berkas)
+
+Untuk peserta dengan hasil **gigi berlubang** yang tatalaksananya **sudah
+diberikan** tapi belum dicatat di portal. Tidak perlu berkas data: robot
+membuka **Tatalaksana → Daftar Tatalaksana**, memasang filter
+**2026 · Gigi · Gigi berlubang**, lalu mengerjakan tab
+**Belum Pencatatan Tatalaksana** dari atas.
+
+1. Pada **Alur CKG**, klik kartu **Tatalaksana Gigi**.
+2. Isi **Jumlah peserta** (1–500 per jalan). Yang sudah dicatat keluar dari
+   daftar portal, jadi menjalankan lagi otomatis melanjutkan.
+3. Periksa **Jawaban form tatalaksana** — dipakai sama untuk semua peserta.
+   Bawaannya: Diagnosis Ya **K02**, Tindakan Ya **23.4**, Obat Tidak (tidak ada
+   indikasi medis), Edukasi Ya, Kontrol/rujuk Tidak (Lainnya). Yang diganti dari
+   bawaan berwarna kuning.
+4. Tekan **Buka browser & mulai**, login portal, lalu **Saya sudah login**.
+   Alur ini selalu satu browser, sekitar **10 detik** per peserta.
+
+> **Jawaban harus sesuai tatalaksana yang benar-benar diberikan.** Robot tidak
+> memeriksa rekam medis. Kalau sebagian peserta mendapat tatalaksana berbeda,
+> jalankan terpisah dengan jawaban yang sesuai, atau catat manual. Obat "Ya" dan
+> "Kontrol rutin" tidak tersedia di aplikasi (perlu resep/tanggal).
+
+Robot mencocokkan NIK di halaman detail sebelum mengisi, mengirim form **hanya
+bila** semua isian tercatat di form, dan menyatakan **tuntas** hanya bila status
+di portal menjadi **Selesai tatalaksana**. Hasilnya lewat **⬇ Unduh Excel**.
+
+> **Satu akun portal = satu tempat login.** Selama robot bekerja, jangan membuka
+> portal dengan akun yang sama di browser atau komputer lain.
+
 ---
 
 ## Arti status di tabel hasil
@@ -160,6 +190,8 @@ dengan warna; lembar **Rekap** berisi jumlah tiap status dan totalnya.
 | `tidak_valid` | oranye | portal menolak datanya |
 | `tidak_ditemukan` | kuning | tidak ada di daftar — periksa NIK, sekolah, atau kelasnya |
 | `gagal_...` | merah | ketemu tapi langkahnya gagal; boleh dijalankan ulang |
+| `sudah_tatalaksana` | kelabu | (Tatalaksana Gigi) status di portal sudah "Selesai tatalaksana" — dilewati |
+| `gagal_isi` | merah | (Tatalaksana Gigi) isian form tidak cocok dengan jawaban yang dipilih — form **tidak dikirim** |
 
 Yang hijau, kelabu, dan ungu tidak akan dikerjakan lagi kalau kamu menjalankan
 ulang — untuk yang ungu, muridnya memang sudah diperiksa; yang perlu dibetulkan

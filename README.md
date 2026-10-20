@@ -177,6 +177,10 @@ SQL Supabase dijalankan sekali, berurutan: `skema.sql` → `tambahan-website.sql
 - Diuji di portal 20 Okt: uji kering 2 peserta (MODE UJI) dan 1 peserta sungguhan → tuntas dalam ±9 detik.
   Portal ternyata hanya mengizinkan **satu sesi per akun**: login robot mengeluarkan browser lain yang memakai akun sama.
 - Demo website mendukung alur ini.
+- **Panduan PDF** (22 halaman) dan `PANDUAN PETUGAS.md`: bagian "Alur khusus: Tatalaksana Gigi" di bab E (cara
+  pakai, jawaban bawaan, peringatan satu sesi per akun), status `sudah_tatalaksana`/`gagal_isi` di bab F, dua baris
+  masalah di bab I. Gambar `t1-tatalaksana.png`, `t2-hasil.png` dari demo website (data rekaan).
+- `panduan/cetak.py` memakai Chromium Playwright bila Google Chrome tidak terpasang.
 
 ### 20 Okt 2026 — PC pengembang kedua (tanpa rilis)
 - `CLAUDE.md`: folder induk boleh berbeda per PC (PC kedua: `G:\Project\CKG Robot\`), tabel folder memori Claude,
