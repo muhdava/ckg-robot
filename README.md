@@ -16,6 +16,11 @@ halaman web lokal (`localhost:8765`).
 
 ### Pengisian otomatis
 - **Tiga jenis CKG:** Dewasa/Lansia, CKG Sekolah (SD–SMA), Balita (termasuk balita tanpa NIK).
+- **Tatalaksana Gigi (tanpa berkas):** mencatat tatalaksana gigi berlubang langsung dari Tatalaksana →
+  Daftar Tatalaksana portal (2026 · Gigi · Gigi berlubang, tab Belum Pencatatan). Jawaban form dipilih di
+  aplikasi (bawaan: Diagnosis K02, Tindakan 23.4, obat Tidak/tidak ada indikasi, edukasi Ya, tindak lanjut
+  Tidak/Lainnya), dicocokkan dengan form sebelum Kirim; tuntas bila status menjadi "Selesai tatalaksana".
+  Maksimal 500 per jalan, satu browser.
 - **Lima alur kerja:** Pendaftaran → Selesai · Pendaftaran → Pelayanan → Selesai (disarankan) ·
   Pendaftaran → Konfirmasi Hadir → Selesai · Pelayanan → Selesai · Pelayanan → Selesai (sapu tab Selesai).
 - **Per peserta:** daftar (tiket) → konfirmasi hadir (sekolah) → mulai pemeriksaan → isi **semua**
@@ -125,6 +130,8 @@ cadangan, dan skrip perapian khusus sekolah — semuanya berisi data peserta ata
 | `tidak_valid` | portal menolak datanya (NIK/nama/tanggal lahir) — betulkan dulu |
 | `tidak_ditemukan` | tidak ada di daftar — periksa NIK, sekolah, kelas |
 | `gagal_*`, `tanpa_tiket`, `layanan_sebagian` | gagal sementara — bisa diulang |
+| `sudah_tatalaksana` | (Tatalaksana Gigi) status di portal sudah "Selesai tatalaksana" — dilewati |
+| `gagal_isi` | (Tatalaksana Gigi) isian form tidak cocok dengan pilihan — form TIDAK dikirim |
 
 ## Pengaturan yang sering dipakai (`pengaturan.txt`)
 
@@ -155,6 +162,21 @@ SQL Supabase dijalankan sekali, berurutan: `skema.sql` → `tambahan-website.sql
 ---
 
 ## Riwayat perubahan
+
+### 20 Okt 2026 — alur Tatalaksana Gigi (belum dirilis)
+- **Alur baru "Tatalaksana Gigi"** (`inti/tatalaksana.py`): tanpa CSV. Robot membuka Daftar Tatalaksana,
+  memasang filter 2026 → Gigi → Gigi berlubang, mengambil peserta teratas di tab *Belum Pencatatan
+  Tatalaksana*, membuka detail (NIK dicocokkan dengan baris daftar), menekan *Mulai Tatalaksana*, mengisi form
+  (Diagnosis, Tindakan, Peresepan, Edukasi, Tindak lanjut) dengan klik sungguhan, membandingkan isian dengan
+  model SurveyJS, lalu Kirim. Tuntas hanya bila status baris di detail menjadi **Selesai tatalaksana**.
+  Status yang sudah selesai dilewati (`sudah_tatalaksana`); isian yang tidak cocok tidak dikirim (`gagal_isi`).
+- Aplikasi: pilihan alur baru, kolom jumlah (maks 500), dropdown jawaban dari `tatalaksana.PILIHAN`
+  (bawaan pemilik di `config.TATALAKSANA_JAWABAN`; yang diganti diberi tanda kuning). Obat "Ya" dan
+  "Kontrol rutin" sengaja tidak disediakan (butuh resep/tanggal). Satu browser saja.
+- `paralel.Pekerja` bisa menjalankan fungsi kerja selain batch CSV. Mode uji dihormati (isi + cocokkan, tanpa Kirim).
+- Diuji di portal 20 Okt: uji kering 2 peserta (MODE UJI) dan 1 peserta sungguhan → tuntas dalam ±9 detik.
+  Portal ternyata hanya mengizinkan **satu sesi per akun**: login robot mengeluarkan browser lain yang memakai akun sama.
+- Demo website mendukung alur ini.
 
 ### 20 Okt 2026 — PC pengembang kedua (tanpa rilis)
 - `CLAUDE.md`: folder induk boleh berbeda per PC (PC kedua: `G:\Project\CKG Robot\`), tabel folder memori Claude,

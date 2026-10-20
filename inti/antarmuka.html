@@ -158,7 +158,7 @@
   /* ---------------------------------------------------------------- isian */
   label{display:block; font-size:13px; font-weight:600; color:var(--teks); margin:0 0 6px}
   label .opsi{font-weight:400; color:var(--samar)}
-  select,input[type=text]{
+  select,input[type=text],input[type=number]{
     width:100%; padding:9px 12px; font:inherit; font-size:14px; color:var(--teks); background:#fff;
     border:1px solid var(--garis-kuat); border-radius:8px; outline:none; appearance:none;
     transition:border-color .15s, box-shadow .15s;
@@ -168,7 +168,10 @@
          background-position:calc(100% - 17px) 52%, calc(100% - 12px) 52%;
          background-size:5px 5px,5px 5px; background-repeat:no-repeat; padding-right:34px}
   select:hover,input[type=text]:hover{border-color:#b3bcc8}
-  select:focus,input[type=text]:focus{border-color:var(--utama); box-shadow:0 0 0 3px rgba(15,118,110,.15)}
+  select:focus,input[type=text]:focus,input[type=number]:focus{border-color:var(--utama); box-shadow:0 0 0 3px rgba(15,118,110,.15)}
+  input[readonly]{background:#f6f8fa; color:var(--redup)}
+  /* Jawaban tatalaksana yang diganti dari bawaan pemilik. */
+  select.beda-bawaan{border-color:#d69e2e; background-color:#fffbeb}
   input[type=checkbox]{accent-color:var(--utama)}
   .baris{display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); gap:14px}
   .baris > div{display:flex; flex-direction:column; justify-content:flex-end}
@@ -446,6 +449,7 @@
       </div>
     </div>
 
+    <div id="pilih-data">
     <div class="baris">
       <div>
         <label for="berkas">Berkas data peserta</label>
@@ -458,6 +462,7 @@
     </div>
     <p class="bantu">Satu nomor (<code>7</code>), rentang (<code>1-1000</code>), atau gabungan (<code>1-500, 640</code>).
       Peserta yang sudah selesai dilewati sendiri.</p>
+    </div>
 
     <div class="pemisah"></div>
     <p class="subjudul">Alur CKG</p>
@@ -467,6 +472,7 @@
       <option value="daftar_konfirmasi">Pendaftaran → Konfirmasi Hadir → Selesai</option>
       <option value="pelayanan">Pelayanan → Selesai</option>
       <option value="pelayanan_sapu">Pelayanan → Selesai (sapu tab Selesai)</option>
+      <option value="tatalaksana_gigi">Tatalaksana Gigi (gigi berlubang)</option>
     </select>
     <div class="pilih-alur" id="pilih-alur" role="radiogroup" aria-label="Alur CKG">
       <label class="alur"><input type="radio" name="alur-pilih" value="penuh">
@@ -484,11 +490,37 @@
       <label class="alur"><input type="radio" name="alur-pilih" value="pelayanan_sapu">
         <span class="nama">Pelayanan → Selesai (sapu tab Selesai)</span>
         <span class="uraian">Seperti di atas, plus periksa ulang form kosong di tab Selesai.</span></label>
+      <label class="alur"><input type="radio" name="alur-pilih" value="tatalaksana_gigi">
+        <span class="nama">Tatalaksana Gigi <span class="lencana">tanpa berkas</span></span>
+        <span class="uraian">Catat tatalaksana gigi berlubang dari Daftar Tatalaksana portal.</span></label>
     </div>
     <p class="jelas" id="jelas-alur"></p>
 
-    <div class="pemisah"></div>
-    <div class="baris">
+    <!-- Hanya untuk alur Tatalaksana Gigi: pesertanya dari portal, jadi
+         yang dipilih di sini jumlahnya dan jawaban formnya. -->
+    <div id="panel-tatalaksana" class="sembunyi">
+      <div class="pemisah"></div>
+      <p class="subjudul">Tatalaksana Gigi</p>
+      <div class="baris">
+        <div>
+          <label for="tl-jumlah">Jumlah peserta</label>
+          <input id="tl-jumlah" type="number" min="1" max="500" step="1" value="500">
+        </div>
+        <div>
+          <label>Daftar di portal</label>
+          <input id="tl-filter" type="text" readonly value="">
+        </div>
+      </div>
+      <p class="bantu">Diambil dari tab <b>Belum Pencatatan Tatalaksana</b>, dari atas. Yang sudah dicatat
+        keluar dari daftar, jadi menjalankan lagi otomatis melanjutkan. Maksimal <span id="tl-maks">500</span> per jalan.</p>
+      <p class="subjudul" style="margin-top:14px">Jawaban form tatalaksana <span class="opsi">(sama untuk semua peserta)</span></p>
+      <div class="baris" id="tl-jawaban"></div>
+      <p class="bantu">Tanggal pelaksanaan diisi portal sendiri (hari ini). Catatan tambahan dikosongkan.
+        Form hanya dikirim bila semua isian di atas benar-benar tercatat di form.</p>
+    </div>
+
+    <div class="pemisah" id="pemisah-jenis"></div>
+    <div class="baris" id="pilih-jenis">
       <div>
         <label for="jenis">Jenis CKG</label>
         <select id="jenis">
@@ -641,7 +673,7 @@ const KELAS = { tuntas:'t-tuntas', sudah_pelayanan:'t-sudah',
                 // puskesmas lain - dua-duanya selesai, bukan kegagalan.
                 ckg_sekolah:'t-sudah', puskesmas_berbeda:'t-beda',
                 tidak_valid:'t-tolak', tidak_ditemukan:'t-tolak',
-                daftar_kosong:'t-tolak' };
+                daftar_kosong:'t-tolak', sudah_tatalaksana:'t-sudah' };
 
 const JELAS = {
   penuh: 'Peserta didaftarkan (halaman 1 → 2 → tiket), lalu langsung dicari di halaman pelayanan, '
@@ -660,10 +692,60 @@ const JELAS = {
        + 'lalu form yang masih kosong diisi. Portal menaruh orang di tab Selesai menurut status '
        + 'orangnya, bukan kelengkapan formnya. Peserta yang dulu dicatat "tuntas" oleh robot juga '
        + 'dicek ulang. Form di pengaturan "timpa form" DIISI ULANG pada tiap peserta yang dibuka.',
+  tatalaksana_gigi: 'Tanpa berkas. Robot membuka Tatalaksana → Daftar Tatalaksana (filter di bawah), '
+       + 'mengambil peserta teratas di tab "Belum Pencatatan Tatalaksana", membuka detailnya, menekan '
+       + 'Mulai Tatalaksana, mengisi form dengan jawaban di bawah, lalu Kirim. Tuntas bila status '
+       + 'barisnya menjadi "Selesai tatalaksana". Yang statusnya sudah selesai dilewati. Satu browser.',
 };
 function jelaskanAlur(){
-  $('jelas-alur').textContent = JELAS[$('alur').value] || '';
-  document.querySelectorAll('#pilih-alur input').forEach(r => { r.checked = r.value === $('alur').value; });
+  const alur = $('alur').value;
+  $('jelas-alur').textContent = JELAS[alur] || '';
+  document.querySelectorAll('#pilih-alur input').forEach(r => { r.checked = r.value === alur; });
+  // Tatalaksana tidak memakai berkas, jenis CKG, maupun beberapa browser.
+  const tl = alur === 'tatalaksana_gigi';
+  ['pilih-data', 'pilih-jenis', 'pemisah-jenis'].forEach(id => $(id).classList.toggle('sembunyi', tl));
+  $('panel-tatalaksana').classList.toggle('sembunyi', !tl);
+  if (tl) $('kabar-pekerja').classList.add('sembunyi'); else jelaskanPekerja();
+}
+
+// Pilihan jawaban tatalaksana dibangun dari server (tatalaksana.PILIHAN), jadi
+// aplikasi tidak mungkin menawarkan kode yang tidak dikenal robotnya.
+// Pilihan terakhir petugas diingat di browser ini saja.
+function gambarTatalaksana(t){
+  if (!t) return;
+  let ingat = {};
+  try { ingat = JSON.parse(localStorage.getItem('ckg-tatalaksana') || '{}'); } catch (e) {}
+  $('tl-maks').textContent = t.maks;
+  $('tl-jumlah').max = t.maks;
+  $('tl-jumlah').value = Math.min(Number(ingat.jumlah) || t.maks, t.maks);
+  $('tl-filter').value = `${t.filter.tahun} · ${t.filter.kelompok} · ${t.filter.hasil}`;
+  $('tl-jawaban').innerHTML = t.bagian.map(b => `<div>
+      <label for="tl-${b.kunci}">${b.judul}</label>
+      <select id="tl-${b.kunci}" data-kunci="${b.kunci}">
+        ${b.pilihan.map(p => `<option value="${p.nilai}">${p.teks}</option>`).join('')}
+      </select></div>`).join('');
+  t.bagian.forEach(b => {
+    const s = $('tl-' + b.kunci);
+    const mau = (ingat.jawaban || {})[b.kunci] || t.bawaan[b.kunci];
+    if ([...s.options].some(o => o.value === mau)) s.value = mau;
+    else s.value = t.bawaan[b.kunci];
+    // Pilihan yang berbeda dari bawaan pemilik diberi tanda, supaya terlihat.
+    const tandai = () => s.classList.toggle('beda-bawaan', s.value !== t.bawaan[b.kunci]);
+    s.onchange = () => { tandai(); simpanTatalaksana(); };
+    tandai();
+  });
+  $('tl-jumlah').onchange = simpanTatalaksana;
+}
+function jawabanTatalaksana(){
+  const j = {};
+  document.querySelectorAll('#tl-jawaban select').forEach(s => { j[s.dataset.kunci] = s.value; });
+  return j;
+}
+function simpanTatalaksana(){
+  try {
+    localStorage.setItem('ckg-tatalaksana', JSON.stringify(
+      {jumlah: $('tl-jumlah').value, jawaban: jawabanTatalaksana()}));
+  } catch (e) {}
 }
 document.querySelectorAll('#pilih-alur input').forEach(r => r.addEventListener('change', () => {
   $('alur').value = r.value; jelaskanAlur();
@@ -820,6 +902,7 @@ async function awal(){
 
   if (d.kategori) $('jenis').value = d.kategori;
   if (d.tahap === 'pelayanan') $('alur').value = 'pelayanan';
+  gambarTatalaksana(d.tatalaksana);
   jelaskanAlur();
 
   if (d.mode_uji){
@@ -1031,6 +1114,8 @@ async function mulai(paksa){
     body: JSON.stringify({berkas: $('berkas').value, rentang: $('rentang').value,
                           jenis: $('jenis').value, alur: $('alur').value,
                           pekerja: parseInt($('pekerja').value, 10),
+                          jumlah: parseInt($('tl-jumlah').value, 10),
+                          tatalaksana: jawabanTatalaksana(),
                           paksa: !!paksa})});
   const d = await r.json().catch(() => ({ok:false, pesan:'Aplikasi tidak menjawab.'}));
   // Penolakan HARUS terlihat. Dulu jawabannya diabaikan, sehingga permintaan

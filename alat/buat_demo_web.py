@@ -14,10 +14,14 @@ bisa membukanya; selain itu dialihkan ke halaman masuk.
 """
 from __future__ import annotations
 
+import json
 import re
+import sys
 from pathlib import Path
 
 AKAR = Path(__file__).resolve().parent.parent
+sys.path.insert(0, str(AKAR / "inti"))
+import tatalaksana  # noqa: E402
 SUMBER = AKAR / "inti" / "antarmuka.html"
 WEB = AKAR.parent / "Website CKG Robot"
 TUJUAN = WEB / "demo" / "index.html"
@@ -73,10 +77,30 @@ function nasib(sekolah){
   return {status: 'gagal_daftar', keterangan: 'tiket tidak muncul dalam 45 dtk — bisa dijalankan ulang'};
 }
 
+// Tatalaksana Gigi: tanpa berkas, satu pekerja, peserta "diambil dari portal".
+function nasibTl(){
+  const r = acak();
+  if (r < .88) return {status: 'tuntas', keterangan: 'status awal: Belum tatalaksana | form dikirim | '
+                                                     + 'status: Selesai tatalaksana'};
+  if (r < .96) return {status: 'sudah_tatalaksana', keterangan: 'status awal: Selesai tatalaksana'};
+  return {status: 'gagal_isi', keterangan: 'TIDAK dikirim - isian tidak sesuai (contoh) | menyerah setelah 3 percobaan'};
+}
+
 function mulai(d){
   if (K && !K.selesai && !d.paksa)
     return J({ok: false, bisa_paksa: true, pesan: 'Masih ada pekerjaan sebelumnya yang berjalan. '
                                                 + 'Tekan “Mulai paksa” bila memang mau memulai baru.'});
+  if (d.alur === 'tatalaksana_gigi'){
+    const n = parseInt(d.jumlah, 10);
+    if (!(n >= 1 && n <= 500)) return J({ok: false, pesan: 'Jumlah peserta 1 sampai 500 per jalan.'});
+    const antre = Array.from({length: Math.min(n, 40)}, (_, i) => i + 1);
+    const w = {nomor: 1, antre, sudah: 0, total: antre.length, login: false, akun: '', berikut: 0,
+               catatan: [`- ${jam()} Alur: Tatalaksana Gigi · 2026 · Gigi · Gigi berlubang · maksimal ${n} peserta`,
+                         `- ${jam()} Browser portal dibuka — menunggu login…`]};
+    K = {tl: true, berkas: {sekolah: false}, pekerja: [w], hasil: [], mulai: Math.floor(Date.now() / 1000),
+         berhenti: false, selesai: false};
+    return J({ok: true});
+  }
   const b = BERKAS.find(x => x.nama === d.berkas) || BERKAS[0];
   const nomor = uraiRentang(d.rentang, b.jumlah).slice(0, 150);
   if (!nomor.length)
@@ -119,10 +143,12 @@ function maju(){
       const no = w.antre.shift();
       const nik = '3172030000' + String(no).padStart(6, '0');
       const nama = `CONTOH ${pilih(DEPAN)} ${pilih(BELAKANG)}`;
-      const h = nasib(K.berkas.sekolah);
+      const h = K.tl ? nasibTl() : nasib(K.berkas.sekolah);
       const t = `- ${jam()} baris ${no}`;
       let lama = 1100 + acak() * 900;
-      if (acak() < .06){
+      if (K.tl){
+        // tanpa gangguan 429 di demo tatalaksana
+      } else if (acak() < .06){
         w.catatan.push(`${t} 429 Too Many Requests — tunggu 15 dtk, lalu muat ulang`,
                        `${t} daftar layanan kembali — lanjut form yang belum`);
         lama += 2500;
@@ -200,7 +226,8 @@ window.fetch = async (alamat, pilihan = {}) => {
   switch (u.pathname){
     case '/api/awal': return J({berkas: BERKAS.map(b => ({nama: b.nama, jumlah: b.jumlah})),
         tahap: 'penuh', kategori: 'auto', mode_uji: false, maks_pekerja: 4,
-        pengguna: 'Petugas Demo', peran: '', pengumuman: '', versi: 'demo', online: true});
+        pengguna: 'Petugas Demo', peran: '', pengumuman: '', versi: 'demo', online: true,
+        tatalaksana: __TATALAKSANA__});
     case '/api/status': return status();
     case '/api/mulai': return mulai(d);
     case '/api/sudah-login': return sudahLogin(d);
@@ -261,7 +288,10 @@ def main() -> None:
     ganti('<div class="atas-tetap">', '<div class="atas-tetap">\n<div class="pita-demo">🧪 MODE DEMO · data '
                                        'rekaan, tidak terhubung ke portal. Tidak ada yang benar-benar didaftarkan.</div>')
     # Tiruan harus terpasang SEBELUM skrip aplikasi memanggil /api/awal.
-    ganti("<script>\nconst $", TIRUAN + "<script>\nconst $")
+    # Pilihan Tatalaksana Gigi diambil dari kode robot, bukan disalin ulang.
+    tiruan = TIRUAN.replace("__TATALAKSANA__", json.dumps(tatalaksana.pilihan_untuk_aplikasi(),
+                                                          ensure_ascii=False))
+    ganti("<script>\nconst $", tiruan + "<script>\nconst $")
     TUJUAN.parent.mkdir(parents=True, exist_ok=True)
     TUJUAN.write_text(t, encoding="utf-8")
     print(f"demo ditulis: {TUJUAN}  ({len(t) // 1024} KB)")

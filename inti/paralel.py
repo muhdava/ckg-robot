@@ -55,11 +55,14 @@ def bagi_rata(batch: list, jumlah: int) -> list[list]:
 class Pekerja:
     """Satu browser + satu bagian data + satu berkas hasil."""
 
-    def __init__(self, nomor: int, batch: list) -> None:
+    def __init__(self, nomor: int, batch: list, kerjakan=None, total: int = 0) -> None:
         self.nomor = nomor
         self.batch = batch
+        # Alur tanpa berkas (Tatalaksana Gigi) memberi fungsinya sendiri:
+        # kerjakan(halaman, kerja, catatan). Bawaannya batch dari CSV.
+        self.kerjakan = kerjakan
         self.kerja = pekerjaan.Pekerjaan()
-        self.kerja.total = len(batch)
+        self.kerja.total = total or len(batch)
         self.profil = config.PROFIL_BROWSER.parent / f"{config.PROFIL_BROWSER.name}-{nomor}"
         self.utas: threading.Thread | None = None
 
@@ -67,7 +70,7 @@ class Pekerja:
     def _jalan(self) -> None:
         k = self.kerja
         try:
-            k.lapor(f"Pekerja {self.nomor}: {len(self.batch)} peserta · profil "
+            k.lapor(f"Pekerja {self.nomor}: {k.total} peserta · profil "
                     f"{self.profil.name}")
             with buka_browser(profil=self.profil) as (_konteks, halaman):
                 halaman.goto(config.PORTAL, wait_until="domcontentloaded")
@@ -99,8 +102,11 @@ class Pekerja:
                 jejak: list = []
                 jejak_layanan: list = []
                 try:
-                    pekerjaan.kerjakan_batch(halaman, self.batch, k, catatan,
-                                             jejak, jejak_layanan)
+                    if self.kerjakan:
+                        self.kerjakan(halaman, k, catatan)
+                    else:
+                        pekerjaan.kerjakan_batch(halaman, self.batch, k, catatan,
+                                                 jejak, jejak_layanan)
                 finally:
                     catatan.tutup()
                     # Nama berkas jejak dibedakan juga, kalau tidak pekerja

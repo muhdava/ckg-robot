@@ -52,6 +52,7 @@ import pekerjaan
 import pendaftaran
 import peserta
 import run as terminal
+import tatalaksana
 
 # Halaman ada di sebelah kode; data peserta di folder `data/`.
 KODE = Path(__file__).resolve().parent
@@ -196,7 +197,7 @@ def _hentikan_untuk_mulai_ulang() -> None:
 KATEGORI_PEMAKAIAN = {
     "tuntas": "tuntas", "layanan_selesai": "tuntas",
     "sudah_pelayanan": "beres_lain", "ckg_umum": "beres_lain", "ckg_sekolah": "beres_lain",
-    "puskesmas_berbeda": "beres_lain",
+    "puskesmas_berbeda": "beres_lain", "sudah_tatalaksana": "beres_lain",
     "tidak_valid": "data_salah", "tidak_ditemukan": "data_salah", "sekolah_berbeda": "data_salah",
     "kelas_berbeda": "data_salah",
 }
@@ -306,6 +307,8 @@ WARNA_STATUS = {
     "daftar_kosong":    ("FEF5C7", "744210"),
     "uji":              ("BEE3F8", "2A4365"),
     "layanan_sebagian": ("FED7AA", "7B341E"),
+    # Tatalaksana yang sudah dicatat sebelumnya (petugas atau jalan lain).
+    "sudah_tatalaksana": ("E2E8F0", "2D3748"),
 }
 WARNA_GAGAL = ("FED7D7", "742A2A")
 
@@ -327,6 +330,8 @@ ARTI_STATUS = {
     "tidak_ditemukan":   "Tidak ada di daftar portal",
     "daftar_kosong":     "Portal tidak memuat daftarnya",
     "layanan_sebagian":  "Diperiksa tapi form belum lengkap",
+    "sudah_tatalaksana": "Tatalaksana sudah dicatat sebelumnya",
+    "gagal_isi":         "Form tatalaksana tidak dikirim (isian tidak cocok)",
     "":                  "Belum dijalankan",
 }
 
@@ -809,6 +814,41 @@ def _siapkan_dan_jalankan(nama_csv: str, rentang: str, jumlah_pekerja: int) -> N
                       pesan=f"{type(e).__name__}: {' '.join(str(e).split())[:250]}")
 
 
+def _mulai_tatalaksana(data: dict) -> dict:
+    """
+    Alur Tatalaksana Gigi: tanpa berkas, pesertanya diambil dari portal.
+
+    Selalu SATU pekerja - semua browser melihat daftar yang sama, dan dua
+    browser yang mengambil baris teratas bersamaan akan bertabrakan.
+    """
+    global PEKERJA, _mulai_pada, _sumber
+    jawaban, galat = tatalaksana.urai_jawaban(data.get("tatalaksana"))
+    if galat:
+        return {"ok": False, "pesan": galat}
+    # Kosong/0 DITOLAK, bukan diganti bawaan: angka yang tidak sengaja
+    # tidak boleh diam-diam menjadi 500 peserta.
+    try:
+        jumlah = int(data.get("jumlah"))
+    except (TypeError, ValueError):
+        return {"ok": False, "pesan": "Isi jumlah peserta (angka)."}
+    if not 1 <= jumlah <= config.TATALAKSANA_MAKS:
+        return {"ok": False,
+                "pesan": f"Jumlah peserta 1 sampai {config.TATALAKSANA_MAKS} per jalan."}
+    config.TAHAP = "tatalaksana_gigi"
+    _mulai_pada = time.time()
+    _sumber = "tatalaksana-gigi"
+    PEKERJA.clear()
+    p = paralel.Pekerja(1, [], total=jumlah,
+                        kerjakan=lambda h, k, c: tatalaksana.kerjakan(h, k, c, jumlah, jawaban))
+    f = config.TATALAKSANA_FILTER
+    p.kerja.lapor(f"Alur: Tatalaksana Gigi · {f['tahun']} · {f['kelompok']} · {f['hasil']}"
+                  f" · maksimal {jumlah} peserta")
+    PEKERJA.append(p)
+    _kabar.update(keadaan="berjalan", pesan="")
+    p.mulai()
+    return {"ok": True}
+
+
 def _sedang_jalan() -> bool:
     return bool(_penyiap and _penyiap.is_alive()) or any(p.hidup() for p in PEKERJA)
 
@@ -927,6 +967,7 @@ class Penangan(BaseHTTPRequestHandler):
                         "kategori": config.KATEGORI,
                         "mode_uji": config.MODE_UJI,
                         "maks_pekerja": config.MAKS_PEKERJA,
+                        "tatalaksana": tatalaksana.pilihan_untuk_aplikasi(),
                         "pengguna": (self._sesi() or {}).get("nama", ""),
                         "peran": ((self._sesi() or {}).get("online") or {}).get("peran", ""),
                         "pengumuman": ((self._sesi() or {}).get("online") or {}).get("pengumuman", ""),
@@ -1221,6 +1262,11 @@ class Penangan(BaseHTTPRequestHandler):
         `buat_laporan_xlsx`.
         """
         baris = list(_keadaan()["hasil"])
+        if _sumber == "tatalaksana-gigi":
+            self._json({"ok": False,
+                        "pesan": "Tatalaksana Gigi tidak memakai berkas data - pakai "
+                                 "Unduh Excel untuk hasilnya."})
+            return
         if not _sumber:
             self._json({"ok": False,
                         "pesan": "Belum ada berkas yang dijalankan di sesi ini."})
@@ -1396,6 +1442,9 @@ class Penangan(BaseHTTPRequestHandler):
             alur = str(data.get("alur", "")).strip().lower()
             if jenis in ("auto", "dewasa", "sekolah", "balita"):
                 config.KATEGORI = jenis
+            if alur == "tatalaksana_gigi":
+                self._json(_mulai_tatalaksana(data))
+                return
             if alur in ("penuh", "pelayanan", "daftar_pelayanan",
                         "pelayanan_sapu", "daftar_konfirmasi"):
                 config.TAHAP = alur

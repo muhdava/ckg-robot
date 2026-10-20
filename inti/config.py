@@ -50,6 +50,27 @@ HAL_SEKOLAH = f"{PORTAL}/ckg-pendaftaran-anak-sekolah"
 # daftarnya baru muncul setelah filter Sekolah + Kelas dipasang.
 HAL_PELAYANAN_SEKOLAH = f"{PORTAL}/ckg-pelayanan-sekolah"
 HOST_FORM = "form.kemkes.go.id"          # domain form skrining (SurveyJS)
+# Daftar individu yang perlu tatalaksana (menu Tatalaksana -> Daftar
+# Tatalaksana). Daftarnya baru muncul setelah filter Tahun program +
+# Kelompok skrining (+ Hasil pemeriksaan) dipilih; filternya TIDAK tersimpan
+# saat halaman dibuka ulang.
+HAL_TATALAKSANA = f"{PORTAL}/ckg-tatalaksana/daftar-list"
+
+# ---------------------------------------------------------------- tatalaksana
+# Alur "Tatalaksana Gigi" tidak memakai berkas: pesertanya diambil dari tab
+# "Belum Pencatatan Tatalaksana". Batas per jalan (keputusan pemilik, 20 Okt 2026).
+TATALAKSANA_MAKS = 500
+TATALAKSANA_FILTER = {"tahun": "2026", "kelompok": "Gigi", "hasil": "Gigi berlubang"}
+# Jawaban bawaan form tatalaksana gigi berlubang (keputusan pemilik, 20 Okt
+# 2026). Petugas bisa menggantinya di aplikasi sebelum mulai; kode di sini
+# adalah NILAI pilihan form (lihat tatalaksana.PILIHAN).
+TATALAKSANA_JAWABAN = {
+    "diagnosis": "Y|K02",
+    "tindakan": "Y|23.4",
+    "obat": "N|RX-NOIND",
+    "edukasi": "Y|",
+    "tindak_lanjut": "N|TL - LAIN",
+}
 
 # ---------------------------------------------------------------- batch
 # Baris CSV yang diproses: BARIS_AWAL sampai BARIS_AWAL + JUMLAH_DATA - 1

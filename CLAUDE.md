@@ -39,6 +39,7 @@ Proyek ini dikerjakan dari **dua PC**. Repo ini (`muhdava/ckg-robot`) dan repo w
 |---|---|
 | `inti/` | server lokal (`server.py`, port 8765), alur portal, konverter, pembaruan, halaman HTML |
 | `inti/config.py` | `VERSI` (dicap `buat_paket.bat`), konstanta waktu & perilaku |
+| `inti/tatalaksana.py` | alur Tatalaksana Gigi (tanpa CSV): daftar → detail → form → status; temuan portal di docstring-nya |
 | `pemasang/` | naskah Inno Setup + penyiap Python embeddable untuk Setup.exe |
 | `panduan/` | sumber `Panduan CKG Robot.pdf` → `python panduan/cetak.py` |
 | `supabase/` | SQL (jalankan berurutan, lihat README) + `PANDUAN SUPABASE.md` |
@@ -62,6 +63,10 @@ Proyek ini dikerjakan dari **dua PC**. Repo ini (`muhdava/ckg-robot`) dan repo w
   dengan alat Write ke berkas `.py`, bukan heredoc.
 - PowerShell 5.1 `Get-Content`/`Set-Content` merusak UTF-8 tanpa BOM (→ `â†’`). Baca/tulis teks dengan Python.
 - `.bat` wajib **CRLF** (`.gitattributes` = `* -text`). Tulis ulang dengan Python bila perlu.
+- Portal hanya mengizinkan **satu sesi per akun**: robot yang login mengeluarkan in-app browser/Chrome yang
+  memakai akun sama (20 Okt 2026). Saat menguji, jangan andalkan sesi portal di browser lain.
+- Uji alur di portal sungguhan: nyalakan `mode uji = ya` di pengaturan salinan uji dulu (isi tanpa Kirim),
+  baru kirim sungguhan sedikit peserta dengan izin pemilik.
 - Aplikasi milik pemilik sering sedang jalan di **port 8765** — uji di port lain (8799) dan jangan
   mematikan prosesnya.
 - Folder repo ini berisi `.git`, sehingga shortcut tidak dibuat otomatis di sini (sengaja); buat manual
