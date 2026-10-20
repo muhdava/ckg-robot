@@ -181,6 +181,13 @@ SQL Supabase dijalankan sekali, berurutan: `skema.sql` → `tambahan-website.sql
   pakai, jawaban bawaan, peringatan satu sesi per akun), status `sudah_tatalaksana`/`gagal_isi` di bab F, dua baris
   masalah di bab I. Gambar `t1-tatalaksana.png`, `t2-hasil.png` dari demo website (data rekaan).
 - `panduan/cetak.py` memakai Chromium Playwright bila Google Chrome tidak terpasang.
+- **Tatalaksana Gigi tahan portal sibuk** (handler yang sama dengan alur normal): layar 429/502/503/504 di
+  daftar, detail, maupun form ditunggu bertingkat (`layanan.JEDA_DIBATASI`, 15 dtk–1,5 mnt) lalu dimuat ulang;
+  popup galat portal ditutup; daftar yang gagal dibuka diulang dari awal (filter dipasang ulang); internet putus
+  ditunggu. Sesudah Kirim yang tertahan ("Kembali ke Halaman Utama", form tampil lagi) robot kembali ke detail
+  lewat `redirectUrl` dan **status barisnya yang memutuskan** — form tidak dikirim ulang di tempat, jadi tidak ada
+  pencatatan ganda. Isian yang ditolak portal (pesan galat form) dicatat `gagal_isi` dan tidak diulang.
+  Putaran ulang di akhir batch untuk yang gagal sementara; `layanan_sebagian` yang ternyata sudah masuk = `tuntas`.
 
 ### 20 Okt 2026 — PC pengembang kedua (tanpa rilis)
 - `CLAUDE.md`: folder induk boleh berbeda per PC (PC kedua: `G:\Project\CKG Robot\`), tabel folder memori Claude,

@@ -29,6 +29,7 @@ from datetime import datetime
 
 import config
 import form
+import layanan
 import pekerjaan
 import portal
 from browser import simpan_gambar
@@ -226,17 +227,138 @@ def _pilih_filter(halaman, placeholder: str, kotak_cari: str, nilai: str) -> boo
                                  4_000)
 
 
-def buka_daftar(halaman, kerja) -> tuple[list[dict], int]:
+# ================================================================ portal sibuk
+# Handler yang SAMA dengan alur normal (layanan.py): layar 429/502/503/504
+# ditunggu bertingkat (layanan.JEDA_DIBATASI, 15 dtk - 1,5 mnt) baru dimuat
+# ulang, popup galat portal ditutup, dan halaman yang tertahan dipulihkan.
+# Bedanya hanya halamannya: daftar & detail tatalaksana, bukan detail-pemeriksaan.
+KEADAAN = r"""() => {
+  const h = location.host, p = location.pathname;
+  const isi = ((document.body && document.body.innerText) || '').trim();
+  if (/^(429|502|503|504)$/.test((document.title || '').trim())
+      || (isi.length < 300 && /too many requests|service unavailable|bad gateway|gateway time-?out/i.test(isi))) {
+    return 'dibatasi';
+  }
+  if (/sehatindonesiaku/i.test(h) && /ckg-tatalaksana\/detail/i.test(p)) return 'detail';
+  if (/sehatindonesiaku/i.test(h) && /ckg-tatalaksana\/daftar-list/i.test(p)) return 'daftar';
+  if (/form\.kemkes/i.test(h)) {
+    if (document.querySelectorAll('.sd-question').length) return 'form';
+    if (/memuat|loading|mohon tunggu/i.test(isi)) return 'memuat';
+    return 'tertahan';
+  }
+  if (/login/i.test(p) || document.querySelector('input[type=password]')) return 'login';
+  return 'lain';
+}"""
+
+
+def keadaan(halaman) -> str:
+    try:
+        return halaman.evaluate(KEADAAN)
+    except Exception:
+        return "lain"           # sedang berpindah halaman
+
+
+class PortalSibuk(RuntimeError):
+    """Portal terus membalas 429/5xx walau sudah ditunggu sampai jeda terpanjang."""
+
+
+def _catat_ke(kerja, r: dict | None):
+    def catat(teks: str) -> None:
+        kerja.lapor(f"    {teks}")
+        if r is not None:
+            r["keterangan"] += f" | {teks}"
+    return catat
+
+
+def tunggu_bila_sibuk(halaman, catat) -> bool:
     """
-    Buka daftar tatalaksana dengan filter terpasang.
+    Bila halaman adalah layar 429/5xx: tunggu bertingkat lalu muat ulang
+    (layanan.tunggu_dibatasi) sampai portal menjawab lagi. Benar bila tadi
+    memang sibuk.
+
+    Melempar PortalSibuk bila masih sibuk sesudah jeda terpanjang - peserta
+    itu dicatat gagal sementara dan diulang di putaran akhir, bukan dipaksa.
+    """
+    if keadaan(halaman) != "dibatasi":
+        return False
+    for ke in range(len(layanan.JEDA_DIBATASI)):
+        layanan.tunggu_dibatasi(halaman, ke, catat)
+        portal.tunggu_kondisi(halaman, "() => document.readyState === 'complete'", 15_000)
+        if keadaan(halaman) != "dibatasi":
+            return True
+    raise PortalSibuk("portal masih membalas 429/galat server setelah ditunggu "
+                      f"{sum(layanan.JEDA_DIBATASI)} detik")
+
+
+def _siap_atau_pulih(halaman, js: str, batas_ms: int, nama: str, catat) -> bool:
+    """
+    tunggu_siap + pemulihan alur normal: kalau belum siap karena layar 429/5xx
+    atau popup galat portal ("Gagal memuat data"), tangani lalu tunggu lagi.
+    """
+    for _ in range(3):
+        if portal.tunggu_siap(halaman, js, batas_ms, nama):
+            return True
+        if tunggu_bila_sibuk(halaman, catat):
+            continue
+        pesan = portal.tutup_popup_galat(halaman)
+        if pesan:
+            catat(f"popup galat portal ditutup: {pesan}")
+            continue
+        return False
+    return False
+
+
+def buka_daftar(halaman, kerja, catat=None) -> tuple[list[dict], int]:
+    """
+    Buka daftar tatalaksana dengan filter terpasang. Portal yang sibuk
+    ditunggu; filter dipasang ULANG dari awal karena tidak tersimpan.
 
     Mengembalikan (baris halaman pertama, jumlah di lencana Belum Pencatatan).
     Lencana -1 = tak terbaca.
     """
+    catat = catat or _catat_ke(kerja, None)
+    gagal = 0
+    sibuk = 0
+    while True:
+        try:
+            return _buka_daftar_sekali(halaman, catat)
+        except PortalSibuk:
+            raise
+        except Exception as e:
+            portal.tutup_popup_galat(halaman)
+            if keadaan(halaman) == "dibatasi":
+                # Layar 429/5xx tidak memakan jatah percobaan biasa - jedanya
+                # bertingkat seperti alur normal, lalu daftar dibuka dari awal.
+                if sibuk >= len(layanan.JEDA_DIBATASI):
+                    raise PortalSibuk("portal masih membalas 429/galat server setelah ditunggu "
+                                      f"{sum(layanan.JEDA_DIBATASI)} detik") from e
+                jeda = layanan.JEDA_DIBATASI[sibuk]
+                sibuk += 1
+                catat(f"portal membatasi permintaan (429/galat server) - tunggu {jeda} detik")
+                for _ in range(jeda):
+                    halaman.wait_for_timeout(1_000)
+                continue
+            gagal += 1
+            if gagal >= 3:
+                raise
+            catat(f"daftar tatalaksana gagal dibuka ({' '.join(str(e).split())[:120]})"
+                  f" - dicoba lagi ({gagal + 1}/3)")
+            halaman.wait_for_timeout(3_000)
+
+
+def _buka_daftar_sekali(halaman, catat) -> tuple[list[dict], int]:
     f = config.TATALAKSANA_FILTER
     halaman.goto(config.HAL_TATALAKSANA, wait_until="domcontentloaded")
-    portal.tunggu_siap(halaman, f"() => ({_JS_PEMICU})('Tahun program')", 15_000,
-                       "filter tatalaksana")
+    if not _siap_atau_pulih(halaman, f"() => ({_JS_PEMICU})('Tahun program')", 15_000,
+                            "filter tatalaksana", catat):
+        if keadaan(halaman) == "login":
+            raise RuntimeError("sesi portal habis - halaman login muncul")
+        raise RuntimeError("filter daftar tidak muncul")
+    if keadaan(halaman) != "daftar":
+        # Dimuat ulang oleh penanganan 429 bisa mendarat di tempat lain.
+        halaman.goto(config.HAL_TATALAKSANA, wait_until="domcontentloaded")
+        portal.tunggu_siap(halaman, f"() => ({_JS_PEMICU})('Tahun program')", 15_000,
+                           "filter tatalaksana")
     for ph, cari, nilai in (("Tahun program", "Cari tahun program", f["tahun"]),
                             ("Kelompok skrining", "Cari kelompok skrining", f["kelompok"]),
                             ("Hasil pemeriksaan", "Cari hasil pemeriksaan", f["hasil"])):
@@ -245,7 +367,10 @@ def buka_daftar(halaman, kerja) -> tuple[list[dict], int]:
     tombol = halaman.get_by_text("Tampilkan pencarian", exact=True)
     tombol.first.click()
     if not portal.tunggu_siap(halaman, _JS_DAFTAR_SIAP, 30_000, "daftar tatalaksana"):
-        raise RuntimeError("daftar tatalaksana tidak termuat")
+        # Pencarian yang gagal di sisi portal: filter hilang bila dimuat ulang,
+        # jadi tidak dipulihkan di tempat - seluruh pembukaan daftar diulang.
+        pesan = portal.tutup_popup_galat(halaman)
+        raise RuntimeError("daftar tatalaksana tidak termuat" + (f" ({pesan})" if pesan else ""))
     # Tab Belum Pencatatan sudah aktif sejak awal, tapi dipastikan: mencatat
     # dari tab Selesai berarti mencatat ulang.
     if not portal.klik_tab(halaman, "Belum Pencatatan Tatalaksana"):
@@ -275,11 +400,95 @@ def baca_detail(halaman) -> dict:
     return halaman.evaluate(_JS_DETAIL, config.TATALAKSANA_FILTER["hasil"]) or {}
 
 
-def _tunggu_detail(halaman, batas_ms: int = 30_000) -> dict:
-    js = (f"() => {{ const d = ({_JS_DETAIL})({portal._teks_js(config.TATALAKSANA_FILTER['hasil'])});"
-          " return /ckg-tatalaksana\\/detail/.test(location.pathname) && d.baris && !!d.status; }")
-    portal.tunggu_siap(halaman, js, batas_ms, "detail tatalaksana")
-    return baca_detail(halaman)
+_JS_DETAIL_SIAP = (f"() => {{ const d = ({_JS_DETAIL})({portal._teks_js(config.TATALAKSANA_FILTER['hasil'])});"
+                   " return /ckg-tatalaksana\\/detail/.test(location.pathname) && d.baris && !!d.status; }")
+
+
+def _tunggu_detail(halaman, batas_ms: int = 30_000, catat=None) -> dict:
+    """Tunggu halaman detail beserta status barisnya; 429/popup galat dipulihkan."""
+    catat = catat or (lambda _s: None)
+    if not _siap_atau_pulih(halaman, _JS_DETAIL_SIAP, batas_ms, "detail tatalaksana", catat):
+        if keadaan(halaman) == "detail":
+            # Halamannya benar tapi tabelnya tak kunjung muncul: muat ulang sekali.
+            catat("halaman detail belum memuat tabel - muat ulang")
+            try:
+                halaman.reload(wait_until="domcontentloaded")
+            except Exception:
+                pass
+            _siap_atau_pulih(halaman, _JS_DETAIL_SIAP, batas_ms, "detail tatalaksana", catat)
+    return baca_detail(halaman) if keadaan(halaman) == "detail" else {}
+
+
+def _url_detail(halaman) -> str:
+    """
+    Alamat halaman detail peserta ini, dari redirectUrl form (atau alamat
+    sekarang bila sudah di detail). Host & path diurai betul - lihat
+    layanan._url_balik untuk jebakan yang sama di alur normal.
+    """
+    from urllib.parse import parse_qs, urlparse
+
+    def sah(u: str) -> bool:
+        x = urlparse(u or "")
+        return "sehatindonesiaku" in x.netloc and "/ckg-tatalaksana/detail" in x.path
+
+    try:
+        sekarang = halaman.url
+    except Exception:
+        return ""
+    if sah(sekarang):
+        return sekarang
+    balik = (parse_qs(urlparse(sekarang).query).get("redirectUrl") or [""])[0]
+    return balik if sah(balik) else ""
+
+
+def _pulihkan_sesudah_kirim(halaman, balik: str, catat) -> dict:
+    """
+    Kembali ke halaman detail sesudah Kirim dan baca statusnya.
+
+    Seperti layanan.pulihkan_sesudah_kirim: layar 429/5xx ditunggu bertingkat,
+    layar kosong "Kembali ke Halaman Utama" dimuat ulang. BEDANYA (sengaja):
+    form yang tampil lagi TIDAK dikirim ulang di tempat. Robot kembali ke
+    detail lewat redirectUrl, dan STATUS barisnya yang memutuskan - "Selesai"
+    berarti kiriman tadi masuk; "Belum" berarti percobaan berikutnya mencatat
+    dari awal. Dengan begitu satu peserta tidak mungkin tercatat dua kali.
+    """
+    tunggu = 40_000            # redirect pertama portal bisa lambat
+    muat_ulang = 0
+    for _ in range(12):
+        portal.tunggu_kondisi(
+            halaman, f"() => ['detail','dibatasi','form','tertahan','login'].includes(({KEADAAN})())",
+            tunggu)
+        tunggu = 15_000
+        k = keadaan(halaman)
+        if k == "detail":
+            return _tunggu_detail(halaman, 30_000, catat)
+        if k == "dibatasi":
+            tunggu_bila_sibuk(halaman, catat)
+            continue
+        if k == "login":
+            raise RuntimeError("sesi portal habis sesudah Kirim - login ulang lalu jalankan lagi")
+        if k == "form" or muat_ulang >= 2:
+            if not balik:
+                break
+            catat("sesudah Kirim masih di form - kembali ke detail untuk membaca status"
+                  if k == "form" else f"tertahan sesudah Kirim ({k}) - kembali ke detail")
+            try:
+                halaman.goto(balik, wait_until="domcontentloaded")
+            except Exception:
+                pass
+            continue
+        muat_ulang += 1
+        catat(f"tertahan sesudah Kirim ({k}) - muat ulang ke-{muat_ulang}")
+        try:
+            halaman.reload(wait_until="domcontentloaded")
+        except Exception:
+            pass
+    if balik:
+        try:
+            halaman.goto(balik, wait_until="domcontentloaded")
+        except Exception:
+            pass
+    return _tunggu_detail(halaman, 30_000, catat)
 
 
 def _selesai(status: str) -> bool:
@@ -493,8 +702,9 @@ def _satu_percobaan(halaman, calon: dict, jawaban: dict, r: dict, kerja,
     `baris` = daftar yang BARU SAJA dibuka (percobaan pertama); percobaan
     ulang selalu membuka daftar dari awal.
     """
+    catat = _catat_ke(kerja, r)
     if baris is None:
-        baris, _ = buka_daftar(halaman, kerja)
+        baris, _ = buka_daftar(halaman, kerja, catat)
     nomor = next((b["i"] for b in baris if b["nik"] == calon["nik"]), None)
     if nomor is None:
         # Sudah keluar dari tab Belum: kiriman percobaan sebelumnya ternyata
@@ -503,7 +713,11 @@ def _satu_percobaan(halaman, calon: dict, jawaban: dict, r: dict, kerja,
         r["keterangan"] += " | tidak ada lagi di tab Belum Pencatatan"
         return
     halaman.locator("table tbody tr").nth(nomor).locator("button").first.click()
-    d = _tunggu_detail(halaman)
+    d = _tunggu_detail(halaman, 30_000, catat)
+    if not d:
+        r["status"] = "gagal_detail"
+        r["keterangan"] += f" | halaman detail tidak terbuka ({keadaan(halaman)})"
+        return
     # Penjaga terakhir: jangan pernah mencatat tatalaksana orang lain. NIK
     # dari baris daftar harus tertulis di kartu identitas halaman detail.
     try:
@@ -531,9 +745,18 @@ def _satu_percobaan(halaman, calon: dict, jawaban: dict, r: dict, kerja,
     t = halaman.locator("table tbody tr").filter(
         has_text=config.TATALAKSANA_FILTER["hasil"]).get_by_role("button", name="Mulai Tatalaksana")
     (t.first if t.count() else halaman.get_by_role("button", name="Mulai Tatalaksana").first).click()
-    portal.tunggu_siap(halaman, f"() => location.host === {portal._teks_js(config.HOST_FORM)}"
-                                " && document.querySelectorAll('.sd-question').length > 0",
-                       30_000, "form tatalaksana")
+    js_form = (f"() => location.host === {portal._teks_js(config.HOST_FORM)}"
+               " && document.querySelectorAll('.sd-question').length > 0")
+    if not _siap_atau_pulih(halaman, js_form, 30_000, "form tatalaksana", catat):
+        if keadaan(halaman) in ("tertahan", "memuat"):
+            # Form kosong/macet saat dibuka (form.kemkes.go.id lambat): muat ulang sekali.
+            catat("form tatalaksana tidak ter-render - muat ulang")
+            try:
+                halaman.reload(wait_until="domcontentloaded")
+            except Exception:
+                pass
+            _siap_atau_pulih(halaman, js_form, 30_000, "form tatalaksana", catat)
+    balik = _url_detail(halaman)
     galat, _ = isi_form(halaman, jawaban)
     if galat:
         r["status"] = "gagal_isi"
@@ -550,9 +773,24 @@ def _satu_percobaan(halaman, calon: dict, jawaban: dict, r: dict, kerja,
         return
     r["terkirim"] = True
     r["keterangan"] += " | form dikirim"
+    # Portal MENOLAK isiannya (pesan galat SurveyJS di form): mengirim ulang
+    # tidak menolong - sama seperti alur normal, dicatat lalu dihentikan.
+    halaman.wait_for_timeout(1_200)
+    if keadaan(halaman) == "form":
+        try:
+            pesan = halaman.evaluate(layanan.PESAN_GALAT_FORM)
+        except Exception:
+            pesan = ""
+        if pesan:
+            r["terkirim"] = False
+            r["tolak"] = True
+            r["status"] = "gagal_isi"
+            r["keterangan"] += f" | portal menolak isian: {pesan} - cek manual"
+            r["gambar"] = simpan_gambar(halaman, f"tatalaksana_{calon['nik'][-4:]}_ditolak")
+            return
     # Portal kembali sendiri ke halaman detail (redirectUrl) - status barisnya
     # yang membuktikan pencatatan diterima.
-    d = _tunggu_detail(halaman, 40_000)
+    d = _pulihkan_sesudah_kirim(halaman, balik, catat)
     for _ in range(2):
         if _selesai(d.get("status", "")):
             break
@@ -560,7 +798,7 @@ def _satu_percobaan(halaman, calon: dict, jawaban: dict, r: dict, kerja,
             halaman.reload(wait_until="domcontentloaded")
         except Exception:
             pass
-        d = _tunggu_detail(halaman, 20_000)
+        d = _tunggu_detail(halaman, 20_000, catat)
     if _selesai(d.get("status", "")):
         r["status"] = "tuntas"
         r["keterangan"] += f" | status: {d['status']}"
@@ -571,10 +809,10 @@ def _satu_percobaan(halaman, calon: dict, jawaban: dict, r: dict, kerja,
 
 
 def _coba_peserta(halaman, calon: dict, jawaban: dict, kerja, urutan: int,
-                  baris: list) -> dict:
+                  baris: list | None, terkirim: bool = False) -> dict:
     r = {"baris": urutan, "nik": calon["nik"], "nama": calon["nama"], "status": "belum",
          "keterangan": f"pelayanan terakhir {calon.get('pelayanan') or '-'}", "tiket": "",
-         "tgl_lahir": calon.get("lahir", "")}
+         "tgl_lahir": calon.get("lahir", ""), "terkirim": terkirim}
     batas = max(1, config.PERCOBAAN_ULANG)
     for percobaan in range(1, batas + 1):
         try:
@@ -585,7 +823,7 @@ def _coba_peserta(halaman, calon: dict, jawaban: dict, kerja, urutan: int,
             r["status"] = "error"
             r["keterangan"] += f" | {type(e).__name__}: " + " ".join(str(e).split())[:300]
             kerja.lapor(f"    ERROR — bukti disimpan: {gambar}")
-        if r["status"] not in STATUS_ULANG or kerja.minta_berhenti:
+        if r["status"] not in STATUS_ULANG or kerja.minta_berhenti or r.get("tolak"):
             break
         if percobaan >= batas:
             r["keterangan"] += f" | menyerah setelah {percobaan} percobaan"
@@ -594,8 +832,8 @@ def _coba_peserta(halaman, calon: dict, jawaban: dict, kerja, urutan: int,
         pekerjaan._bersihkan_halaman(halaman, kerja)
         if pekerjaan._galat_jaringan(r):
             pekerjaan._tunggu_jaringan(halaman, kerja)
-    r.pop("terkirim", None)
-    r.pop("gambar", None)
+    for k in ("terkirim", "gambar", "tolak"):
+        r.pop(k, None)
     return r
 
 
@@ -613,16 +851,15 @@ def kerjakan(halaman, kerja, catatan_hasil, jumlah: int, jawaban: dict) -> None:
     sudah: set[str] = set()
     beruntun = 0
     urutan = 0
+    lewati_ulang = False     # daftar tak bisa dibuka / gagal beruntun: jangan diulang
     while urutan < jumlah and not kerja.minta_berhenti:
         if not kerja.akun:
             kerja.akun = portal.nama_akun(halaman)
-        try:
-            baris, lencana = buka_daftar(halaman, kerja)
-        except Exception as e:
-            kerja.pesan = f"Daftar tatalaksana tidak bisa dibuka: {' '.join(str(e).split())[:200]}"
-            kerja.lapor(kerja.pesan)
-            simpan_gambar(halaman, "error_daftar_tatalaksana")
+        baris = _daftar_tahan_gangguan(halaman, kerja)
+        if baris is None:
+            lewati_ulang = True
             break
+        baris, lencana = baris
         if urutan == 0:
             kerja.lapor(f"Belum Pencatatan Tatalaksana: {lencana if lencana >= 0 else '?'} peserta")
             if lencana >= 0:
@@ -650,6 +887,59 @@ def kerjakan(halaman, kerja, catatan_hasil, jumlah: int, jawaban: dict) -> None:
             kerja.pesan = (f"Dihentikan: {beruntun} peserta gagal berturut-turut. "
                            "Periksa catatannya, lalu jalankan lagi.")
             kerja.lapor(kerja.pesan)
+            lewati_ulang = True
             break
+
+    # PUTARAN ULANG DI AKHIR BATCH - sama dengan alur normal (pekerjaan.py):
+    # portal yang padat sering sudah pulih beberapa menit kemudian. Isian yang
+    # DITOLAK portal tidak diulang (jawabannya akan sama).
+    for putaran in range(1, max(0, config.ULANG_AKHIR) + 1):
+        if kerja.minta_berhenti or lewati_ulang:
+            break
+        sisa = [i for i, h in enumerate(kerja.hasil)
+                if h.get("status") in STATUS_ULANG and "portal menolak isian" not in h.get("keterangan", "")]
+        if not sisa:
+            break
+        kerja.lapor(f"Putaran ulang {putaran}: {len(sisa)} peserta yang gagal dicoba sekali lagi")
+        for k, i in enumerate(sisa, start=1):
+            if kerja.minta_berhenti:
+                break
+            lama = kerja.hasil[i]
+            calon = {"nik": lama["nik"], "nama": lama["nama"], "lahir": lama.get("tgl_lahir", ""),
+                     "pelayanan": ""}
+            kerja.lapor(f"[ulang {k}/{len(sisa)}] {calon['nama']}")
+            pekerjaan._bersihkan_halaman(halaman, kerja)
+            # Sudah pernah terkirim tapi statusnya belum terbukti: bila kini sudah
+            # keluar dari daftar / berstatus Selesai, itu kiriman yang tadi.
+            r = _coba_peserta(halaman, calon, jawaban, kerja, lama["baris"], None,
+                              terkirim=lama.get("status") == "layanan_sebagian")
+            r["keterangan"] += f" | putaran ulang di akhir batch (sebelumnya {lama.get('status')})"
+            r["waktu"] = datetime.now().strftime("%H:%M:%S")
+            kerja.hasil[i] = dict(r)           # tabel menampilkan hasil TERAKHIR
+            catatan_hasil.tambah(r)            # CSV: baris baru, yang terakhir berlaku
+            kerja.lapor(f"    {r['status']} · {r['keterangan'][:200]}")
     if kerja.minta_berhenti:
         kerja.lapor("Dihentikan oleh pengguna.")
+
+
+def _daftar_tahan_gangguan(halaman, kerja):
+    """
+    Buka daftar untuk memilih peserta berikutnya. Internet putus atau portal
+    yang terus sibuk ditunggu dulu (seperti alur normal) - baru menyerah
+    sesudah tiga kali. Mengembalikan (baris, lencana) atau None.
+    """
+    for ke in range(1, 4):
+        try:
+            return buka_daftar(halaman, kerja)
+        except Exception as e:
+            teks = f"{type(e).__name__}: {' '.join(str(e).split())[:200]}"
+            if ke < 3 and not kerja.minta_berhenti and (
+                    isinstance(e, PortalSibuk) or pekerjaan._galat_jaringan({"keterangan": teks})):
+                kerja.lapor(f"    daftar tatalaksana belum bisa dibuka ({teks}) - ditunggu lalu dicoba lagi")
+                pekerjaan._tunggu_jaringan(halaman, kerja)
+                continue
+            kerja.pesan = f"Daftar tatalaksana tidak bisa dibuka: {teks}"
+            kerja.lapor(kerja.pesan)
+            simpan_gambar(halaman, "error_daftar_tatalaksana")
+            return None
+    return None
