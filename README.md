@@ -169,7 +169,8 @@ SQL Supabase dijalankan sekali, berurutan: `skema.sql` → `tambahan-website.sql
 
 ## Riwayat perubahan
 
-### 21 Okt 2026 — Sapu Belum Pemeriksaan sampai 10 browser (belum dirilis)
+### 2026.10.21.1837 — Sapu Belum Pemeriksaan sampai 10 browser
+Menggantikan paket 1830 (tidak pernah diterbitkan).
 - Alur Sapu bisa memakai **sampai 10 browser** (`config.MAKS_PEKERJA`), permintaan pemilik sebelum rilis 1830
   diunggah. Semua browser melihat tab Belum Pemeriksaan yang sama, jadi mereka berbagi `sapu_pelayanan.Bersama`:
   nomor tiket DIKLAIM di bawah kunci sebelum peserta dibuka, tiket milik browser lain dilewati. Jumlah peserta
