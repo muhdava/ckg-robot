@@ -56,6 +56,11 @@ HOST_FORM = "form.kemkes.go.id"          # domain form skrining (SurveyJS)
 # saat halaman dibuka ulang.
 HAL_TATALAKSANA = f"{PORTAL}/ckg-tatalaksana/daftar-list"
 
+# ---------------------------------------------------------------- sapu belum pemeriksaan
+# Alur pelayanan TANPA berkas: peserta dewasa/lansia diambil dari tab "Belum
+# Pemeriksaan" halaman pelayanan, jawaban dipilih petugas (sapu_pelayanan.py).
+SAPU_MAKS = 500
+
 # ---------------------------------------------------------------- tatalaksana
 # Alur "Tatalaksana Gigi" tidak memakai berkas: pesertanya diambil dari tab
 # "Belum Pencatatan Tatalaksana". Batas per jalan (keputusan pemilik, 20 Okt 2026).

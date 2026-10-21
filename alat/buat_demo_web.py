@@ -21,6 +21,7 @@ from pathlib import Path
 
 AKAR = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(AKAR / "inti"))
+import sapu_pelayanan  # noqa: E402
 import tatalaksana  # noqa: E402
 SUMBER = AKAR / "inti" / "antarmuka.html"
 WEB = AKAR.parent / "Website CKG Robot"
@@ -90,14 +91,16 @@ function mulai(d){
   if (K && !K.selesai && !d.paksa)
     return J({ok: false, bisa_paksa: true, pesan: 'Masih ada pekerjaan sebelumnya yang berjalan. '
                                                 + 'Tekan “Mulai paksa” bila memang mau memulai baru.'});
-  if (d.alur === 'tatalaksana_gigi'){
+  if (d.alur === 'tatalaksana_gigi' || d.alur === 'sapu_belum'){
     const n = parseInt(d.jumlah, 10);
     if (!(n >= 1 && n <= 500)) return J({ok: false, pesan: 'Jumlah peserta 1 sampai 500 per jalan.'});
     const antre = Array.from({length: Math.min(n, 40)}, (_, i) => i + 1);
     const w = {nomor: 1, antre, sudah: 0, total: antre.length, login: false, akun: '', berikut: 0,
-               catatan: [`- ${jam()} Alur: Tatalaksana Gigi · 2026 · Gigi · Gigi berlubang · maksimal ${n} peserta`,
+               catatan: [d.alur === 'sapu_belum'
+                           ? `- ${jam()} Alur: Sapu Belum Pemeriksaan (tanpa berkas) · dewasa/lansia · maksimal ${n} peserta`
+                           : `- ${jam()} Alur: Tatalaksana Gigi · 2026 · Gigi · Gigi berlubang · maksimal ${n} peserta`,
                          `- ${jam()} Browser portal dibuka — menunggu login…`]};
-    K = {tl: true, berkas: {sekolah: false}, pekerja: [w], hasil: [], mulai: Math.floor(Date.now() / 1000),
+    K = {tl: d.alur === 'tatalaksana_gigi', berkas: {sekolah: false}, pekerja: [w], hasil: [], mulai: Math.floor(Date.now() / 1000),
          berhenti: false, selesai: false};
     return J({ok: true});
   }
@@ -227,7 +230,7 @@ window.fetch = async (alamat, pilihan = {}) => {
     case '/api/awal': return J({berkas: BERKAS.map(b => ({nama: b.nama, jumlah: b.jumlah})),
         tahap: 'penuh', kategori: 'auto', mode_uji: false, maks_pekerja: 4,
         pengguna: 'Petugas Demo', peran: '', pengumuman: '', versi: 'demo', online: true,
-        tatalaksana: __TATALAKSANA__});
+        tatalaksana: __TATALAKSANA__, sapu: __SAPU__});
     case '/api/status': return status();
     case '/api/mulai': return mulai(d);
     case '/api/sudah-login': return sudahLogin(d);
@@ -289,7 +292,9 @@ def main() -> None:
                                        'rekaan, tidak terhubung ke portal. Tidak ada yang benar-benar didaftarkan.</div>')
     # Tiruan harus terpasang SEBELUM skrip aplikasi memanggil /api/awal.
     # Pilihan Tatalaksana Gigi diambil dari kode robot, bukan disalin ulang.
-    tiruan = TIRUAN.replace("__TATALAKSANA__", json.dumps(tatalaksana.pilihan_untuk_aplikasi(),
+    tiruan = TIRUAN.replace("__SAPU__", json.dumps(sapu_pelayanan.pilihan_untuk_aplikasi(),
+                                                    ensure_ascii=False))
+    tiruan = tiruan.replace("__TATALAKSANA__", json.dumps(tatalaksana.pilihan_untuk_aplikasi(),
                                                           ensure_ascii=False))
     ganti("<script>\nconst $", tiruan + "<script>\nconst $")
     TUJUAN.parent.mkdir(parents=True, exist_ok=True)

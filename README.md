@@ -16,6 +16,11 @@ halaman web lokal (`localhost:8765`).
 
 ### Pengisian otomatis
 - **Tiga jenis CKG:** Dewasa/Lansia, CKG Sekolah (SD–SMA), Balita (termasuk balita tanpa NIK).
+- **Sapu Belum Pemeriksaan (tanpa berkas):** peserta dewasa/lansia (≥ 18 th) diambil dari halaman Pelayanan tab
+  *Belum Pemeriksaan*, dikerjakan seperti Pelayanan → Selesai (semua form, Selesaikan Layanan). Jawaban dipilih
+  petugas di aplikasi: angka ukur lewat parameter (gizi Kurus/Normal/Gemuk, tensi & gula Normal/Tinggi/Rendah —
+  rentang sama dengan template parameter), merokok, batuk, kontak TBC, rontgen, mata, serumen, karies, gigi hilang,
+  geriatri. Maksimal 500 per jalan, satu browser.
 - **Tatalaksana Gigi (tanpa berkas):** mencatat tatalaksana gigi berlubang langsung dari Tatalaksana →
   Daftar Tatalaksana portal (2026 · Gigi · Gigi berlubang, tab Belum Pencatatan). Jawaban form dipilih di
   aplikasi (bawaan: Diagnosis K02, Tindakan 23.4, obat Tidak/tidak ada indikasi, edukasi Ya, tindak lanjut
@@ -162,6 +167,22 @@ SQL Supabase dijalankan sekali, berurutan: `skema.sql` → `tambahan-website.sql
 ---
 
 ## Riwayat perubahan
+
+### 21 Okt 2026 — alur Sapu Belum Pemeriksaan (belum dirilis)
+- **Alur baru "Sapu Belum Pemeriksaan"** (`inti/sapu_pelayanan.py`): alur pelayanan normal tanpa berkas. Tabel tab
+  Belum Pemeriksaan TIDAK memuat NIK/JK (hanya nama, tanggal lahir, nomor tiket), jadi robot memilih baris berumur
+  ≥ 18, menekan "Mulai" di baris itu (hanya membuka detail), membaca NIK + jenis kelamin + tiket dari kepala halaman
+  detail (tiket harus sama), membentuk `Peserta` dengan parameter pilihan petugas, lalu memakai
+  `pekerjaan._coba_peserta` yang sama dengan alur berkas (cari NIK, Mulai Pemeriksaan, sapu form, Selesaikan
+  Layanan dengan bukti, percobaan ulang).
+- Jawaban: angka ukur dari parameter (keputusan pemilik 21 Okt — rentang `peserta.py`, berbenih NIK), temuan lewat
+  `rinci` (`form.aturan_rinci`) dengan keputusan yang sama seperti berkas skrining TBC (indeks bakteriologis, dahak
+  tidak dilakukan, asap = merokok, DM Tidak). Pertanyaan lain normal/negatif.
+- MODE UJI pada alur ini berhenti SEBELUM "Mulai Pemeriksaan" dan hanya mencatat angka/jawaban yang akan diisi
+  (MODE UJI di alur normal hanya menahan pendaftaran).
+- Panel jawaban aplikasi dijadikan umum (`gambarJawaban`, dipakai Tatalaksana & Sapu). Demo website mendukung alur ini.
+- Diuji di portal 21 Okt: uji kering 3 peserta (identitas detail terbaca & cocok), 1 peserta sungguhan → tuntas
+  (23 form terisi, 13 form lab dilewati, layanan Selesai Pemeriksaan) dalam ±2,5 menit.
 
 ### 2026.10.20.2151 — alur Tatalaksana Gigi
 Rilis pertama dari PC pengembang kedua (Setup dibuat dengan Inno Setup 6.7.3, Python bawaan 3.14.7).

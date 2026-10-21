@@ -39,6 +39,7 @@ Proyek ini dikerjakan dari **dua PC**. Repo ini (`muhdava/ckg-robot`) dan repo w
 |---|---|
 | `inti/` | server lokal (`server.py`, port 8765), alur portal, konverter, pembaruan, halaman HTML |
 | `inti/config.py` | `VERSI` (dicap `buat_paket.bat`), konstanta waktu & perilaku |
+| `inti/sapu_pelayanan.py` | alur Sapu Belum Pemeriksaan (tanpa CSV): baris tab Belum → identitas di detail → `pekerjaan._coba_peserta` |
 | `inti/tatalaksana.py` | alur Tatalaksana Gigi (tanpa CSV): daftar → detail → form → status; temuan portal di docstring-nya |
 | `pemasang/` | naskah Inno Setup + penyiap Python embeddable untuk Setup.exe |
 | `panduan/` | sumber `Panduan CKG Robot.pdf` → `python panduan/cetak.py` |

@@ -472,6 +472,7 @@
       <option value="daftar_konfirmasi">Pendaftaran → Konfirmasi Hadir → Selesai</option>
       <option value="pelayanan">Pelayanan → Selesai</option>
       <option value="pelayanan_sapu">Pelayanan → Selesai (sapu tab Selesai)</option>
+      <option value="sapu_belum">Sapu Belum Pemeriksaan (tanpa berkas)</option>
       <option value="tatalaksana_gigi">Tatalaksana Gigi (gigi berlubang)</option>
     </select>
     <div class="pilih-alur" id="pilih-alur" role="radiogroup" aria-label="Alur CKG">
@@ -490,11 +491,38 @@
       <label class="alur"><input type="radio" name="alur-pilih" value="pelayanan_sapu">
         <span class="nama">Pelayanan → Selesai (sapu tab Selesai)</span>
         <span class="uraian">Seperti di atas, plus periksa ulang form kosong di tab Selesai.</span></label>
+      <label class="alur"><input type="radio" name="alur-pilih" value="sapu_belum">
+        <span class="nama">Sapu Belum Pemeriksaan <span class="lencana">tanpa berkas</span></span>
+        <span class="uraian">Dewasa/lansia di tab Belum Pemeriksaan, jawaban dipilih di sini.</span></label>
       <label class="alur"><input type="radio" name="alur-pilih" value="tatalaksana_gigi">
         <span class="nama">Tatalaksana Gigi <span class="lencana">tanpa berkas</span></span>
         <span class="uraian">Catat tatalaksana gigi berlubang dari Daftar Tatalaksana portal.</span></label>
     </div>
     <p class="jelas" id="jelas-alur"></p>
+
+    <!-- Hanya untuk alur Sapu Belum Pemeriksaan: pesertanya dari halaman
+         pelayanan, jawaban & parameter angka dipilih di sini. -->
+    <div id="panel-sapu" class="sembunyi">
+      <div class="pemisah"></div>
+      <p class="subjudul">Sapu Belum Pemeriksaan</p>
+      <div class="baris">
+        <div>
+          <label for="sp-jumlah">Jumlah peserta</label>
+          <input id="sp-jumlah" type="number" min="1" max="500" step="1" value="500">
+        </div>
+        <div>
+          <label>Daftar di portal</label>
+          <input type="text" readonly value="Pelayanan · Belum Pemeriksaan · umur ≥ 18 th">
+        </div>
+      </div>
+      <p class="bantu">Diambil dari tab <b>Belum Pemeriksaan</b> halaman Pelayanan (rentang tanggal bawaan portal),
+        dari atas. Anak &lt; 18 tahun dilewati. Maksimal <span id="sp-maks">500</span> per jalan.</p>
+      <p class="subjudul" style="margin-top:14px">Jawaban untuk semua peserta <span class="opsi">(sama untuk semua peserta)</span></p>
+      <div class="baris" id="sp-jawaban"></div>
+      <p class="bantu"><b>Angka ukur dari parameter:</b> BB, TB, lingkar perut, tensi, dan gula diambil dalam rentang
+        parameter yang dipilih (sama dengan Template DEWASA-LANSIA parameter), tetap untuk tiap NIK. Pertanyaan lain dijawab
+        normal/negatif. Riwayat DM dijawab Tidak. Layanan ditutup (Selesaikan Layanan) seperti alur normal.</p>
+    </div>
 
     <!-- Hanya untuk alur Tatalaksana Gigi: pesertanya dari portal, jadi
          yang dipilih di sini jumlahnya dan jawaban formnya. -->
@@ -692,6 +720,10 @@ const JELAS = {
        + 'lalu form yang masih kosong diisi. Portal menaruh orang di tab Selesai menurut status '
        + 'orangnya, bukan kelengkapan formnya. Peserta yang dulu dicatat "tuntas" oleh robot juga '
        + 'dicek ulang. Form di pengaturan "timpa form" DIISI ULANG pada tiap peserta yang dibuka.',
+  sapu_belum: 'Tanpa berkas. Robot membuka halaman Pelayanan tab "Belum Pemeriksaan", mengambil peserta '
+       + 'dewasa/lansia (umur ≥ 18) dari atas, membaca NIK & jenis kelamin di halaman detailnya, lalu '
+       + 'mengerjakannya persis seperti Pelayanan → Selesai: Mulai Pemeriksaan, seluruh form diisi dengan '
+       + 'jawaban di bawah, Selesaikan Layanan. Angka ukur memakai parameter yang dipilih. Satu browser.',
   tatalaksana_gigi: 'Tanpa berkas. Robot membuka Tatalaksana → Daftar Tatalaksana (filter di bawah), '
        + 'mengambil peserta teratas di tab "Belum Pencatatan Tatalaksana", membuka detailnya, menekan '
        + 'Mulai Tatalaksana, mengisi form dengan jawaban di bawah, lalu Kirim. Tuntas bila status '
@@ -701,50 +733,55 @@ function jelaskanAlur(){
   const alur = $('alur').value;
   $('jelas-alur').textContent = JELAS[alur] || '';
   document.querySelectorAll('#pilih-alur input').forEach(r => { r.checked = r.value === alur; });
-  // Tatalaksana tidak memakai berkas, jenis CKG, maupun beberapa browser.
-  const tl = alur === 'tatalaksana_gigi';
-  ['pilih-data', 'pilih-jenis', 'pemisah-jenis'].forEach(id => $(id).classList.toggle('sembunyi', tl));
+  // Alur tanpa berkas tidak memakai berkas, jenis CKG, maupun beberapa browser.
+  const tl = alur === 'tatalaksana_gigi', sp = alur === 'sapu_belum', tanpa = tl || sp;
+  ['pilih-data', 'pilih-jenis', 'pemisah-jenis'].forEach(id => $(id).classList.toggle('sembunyi', tanpa));
   $('panel-tatalaksana').classList.toggle('sembunyi', !tl);
-  if (tl) $('kabar-pekerja').classList.add('sembunyi'); else jelaskanPekerja();
+  $('panel-sapu').classList.toggle('sembunyi', !sp);
+  if (tanpa) $('kabar-pekerja').classList.add('sembunyi'); else jelaskanPekerja();
 }
 
-// Pilihan jawaban tatalaksana dibangun dari server (tatalaksana.PILIHAN), jadi
-// aplikasi tidak mungkin menawarkan kode yang tidak dikenal robotnya.
-// Pilihan terakhir petugas diingat di browser ini saja.
-function gambarTatalaksana(t){
+// Pilihan jawaban alur TANPA BERKAS dibangun dari server (tatalaksana.PILIHAN,
+// sapu_pelayanan.PILIHAN), jadi aplikasi tidak mungkin menawarkan nilai yang
+// tidak dikenal robotnya. Pilihan terakhir petugas diingat di browser ini saja.
+// awalan: 'tl' (Tatalaksana Gigi) atau 'sp' (Sapu Belum Pemeriksaan).
+const SIMPAN_JAWABAN = {tl: 'ckg-tatalaksana', sp: 'ckg-sapu'};
+function gambarJawaban(awalan, t){
   if (!t) return;
   let ingat = {};
-  try { ingat = JSON.parse(localStorage.getItem('ckg-tatalaksana') || '{}'); } catch (e) {}
-  $('tl-maks').textContent = t.maks;
-  $('tl-jumlah').max = t.maks;
-  $('tl-jumlah').value = Math.min(Number(ingat.jumlah) || t.maks, t.maks);
-  $('tl-filter').value = `${t.filter.tahun} · ${t.filter.kelompok} · ${t.filter.hasil}`;
-  $('tl-jawaban').innerHTML = t.bagian.map(b => `<div>
-      <label for="tl-${b.kunci}">${b.judul}</label>
-      <select id="tl-${b.kunci}" data-kunci="${b.kunci}">
+  try { ingat = JSON.parse(localStorage.getItem(SIMPAN_JAWABAN[awalan]) || '{}'); } catch (e) {}
+  $(awalan + '-maks').textContent = t.maks;
+  $(awalan + '-jumlah').max = t.maks;
+  $(awalan + '-jumlah').value = Math.min(Number(ingat.jumlah) || t.maks, t.maks);
+  if (t.filter && $(awalan + '-filter'))
+    $(awalan + '-filter').value = `${t.filter.tahun} · ${t.filter.kelompok} · ${t.filter.hasil}`;
+  $(awalan + '-jawaban').innerHTML = t.bagian.map(b => `<div>
+      <label for="${awalan}-${b.kunci}">${b.judul}</label>
+      <select id="${awalan}-${b.kunci}" data-kunci="${b.kunci}">
         ${b.pilihan.map(p => `<option value="${p.nilai}">${p.teks}</option>`).join('')}
       </select></div>`).join('');
+  const simpan = () => simpanJawaban(awalan);
   t.bagian.forEach(b => {
-    const s = $('tl-' + b.kunci);
+    const s = $(awalan + '-' + b.kunci);
     const mau = (ingat.jawaban || {})[b.kunci] || t.bawaan[b.kunci];
     if ([...s.options].some(o => o.value === mau)) s.value = mau;
     else s.value = t.bawaan[b.kunci];
-    // Pilihan yang berbeda dari bawaan pemilik diberi tanda, supaya terlihat.
+    // Pilihan yang berbeda dari bawaan diberi tanda, supaya terlihat.
     const tandai = () => s.classList.toggle('beda-bawaan', s.value !== t.bawaan[b.kunci]);
-    s.onchange = () => { tandai(); simpanTatalaksana(); };
+    s.onchange = () => { tandai(); simpan(); };
     tandai();
   });
-  $('tl-jumlah').onchange = simpanTatalaksana;
+  $(awalan + '-jumlah').onchange = simpan;
 }
-function jawabanTatalaksana(){
+function ambilJawaban(awalan){
   const j = {};
-  document.querySelectorAll('#tl-jawaban select').forEach(s => { j[s.dataset.kunci] = s.value; });
+  document.querySelectorAll(`#${awalan}-jawaban select`).forEach(s => { j[s.dataset.kunci] = s.value; });
   return j;
 }
-function simpanTatalaksana(){
+function simpanJawaban(awalan){
   try {
-    localStorage.setItem('ckg-tatalaksana', JSON.stringify(
-      {jumlah: $('tl-jumlah').value, jawaban: jawabanTatalaksana()}));
+    localStorage.setItem(SIMPAN_JAWABAN[awalan], JSON.stringify(
+      {jumlah: $(awalan + '-jumlah').value, jawaban: ambilJawaban(awalan)}));
   } catch (e) {}
 }
 document.querySelectorAll('#pilih-alur input').forEach(r => r.addEventListener('change', () => {
@@ -902,7 +939,8 @@ async function awal(){
 
   if (d.kategori) $('jenis').value = d.kategori;
   if (d.tahap === 'pelayanan') $('alur').value = 'pelayanan';
-  gambarTatalaksana(d.tatalaksana);
+  gambarJawaban('tl', d.tatalaksana);
+  gambarJawaban('sp', d.sapu);
   jelaskanAlur();
 
   if (d.mode_uji){
@@ -1114,8 +1152,10 @@ async function mulai(paksa){
     body: JSON.stringify({berkas: $('berkas').value, rentang: $('rentang').value,
                           jenis: $('jenis').value, alur: $('alur').value,
                           pekerja: parseInt($('pekerja').value, 10),
-                          jumlah: parseInt($('tl-jumlah').value, 10),
-                          tatalaksana: jawabanTatalaksana(),
+                          jumlah: parseInt($(($('alur').value === 'sapu_belum' ? 'sp' : 'tl')
+                                              + '-jumlah').value, 10),
+                          tatalaksana: ambilJawaban('tl'),
+                          sapu: ambilJawaban('sp'),
                           paksa: !!paksa})});
   const d = await r.json().catch(() => ({ok:false, pesan:'Aplikasi tidak menjawab.'}));
   // Penolakan HARUS terlihat. Dulu jawabannya diabaikan, sehingga permintaan
