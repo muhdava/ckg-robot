@@ -516,7 +516,8 @@
         </div>
       </div>
       <p class="bantu">Diambil dari tab <b>Belum Pemeriksaan</b> halaman Pelayanan (rentang tanggal bawaan portal),
-        dari atas. Anak &lt; 18 tahun dilewati. Maksimal <span id="sp-maks">500</span> per jalan.</p>
+        dari atas. Anak &lt; 18 tahun dilewati. Maksimal <span id="sp-maks">500</span> per jalan, sampai 10 browser
+        (jumlah dibagi rata; tiap tiket hanya diambil satu browser).</p>
       <p class="subjudul" style="margin-top:14px">Jawaban untuk semua peserta <span class="opsi">(sama untuk semua peserta)</span></p>
       <div class="baris" id="sp-jawaban"></div>
       <p class="bantu"><b>Angka ukur dari parameter:</b> BB, TB, lingkar perut, tensi, dan gula diambil dalam rentang
@@ -549,7 +550,7 @@
 
     <div class="pemisah" id="pemisah-jenis"></div>
     <div class="baris" id="pilih-jenis">
-      <div>
+      <div id="pilih-jenis-ckg">
         <label for="jenis">Jenis CKG</label>
         <select id="jenis">
           <option value="auto">Ikuti isi berkas (disarankan)</option>
@@ -723,7 +724,8 @@ const JELAS = {
   sapu_belum: 'Tanpa berkas. Robot membuka halaman Pelayanan tab "Belum Pemeriksaan", mengambil peserta '
        + 'dewasa/lansia (umur ≥ 18) dari atas, membaca NIK & jenis kelamin di halaman detailnya, lalu '
        + 'mengerjakannya persis seperti Pelayanan → Selesai: Mulai Pemeriksaan, seluruh form diisi dengan '
-       + 'jawaban di bawah, Selesaikan Layanan. Angka ukur memakai parameter yang dipilih. Satu browser.',
+       + 'jawaban di bawah, Selesaikan Layanan. Angka ukur memakai parameter yang dipilih. Bisa beberapa '
+       + 'browser: tiap browser login akun BERBEDA, tiap tiket hanya diambil satu browser.',
   tatalaksana_gigi: 'Tanpa berkas. Robot membuka Tatalaksana → Daftar Tatalaksana (filter di bawah), '
        + 'mengambil peserta teratas di tab "Belum Pencatatan Tatalaksana", membuka detailnya, menekan '
        + 'Mulai Tatalaksana, mengisi form dengan jawaban di bawah, lalu Kirim. Tuntas bila status '
@@ -735,10 +737,13 @@ function jelaskanAlur(){
   document.querySelectorAll('#pilih-alur input').forEach(r => { r.checked = r.value === alur; });
   // Alur tanpa berkas tidak memakai berkas, jenis CKG, maupun beberapa browser.
   const tl = alur === 'tatalaksana_gigi', sp = alur === 'sapu_belum', tanpa = tl || sp;
-  ['pilih-data', 'pilih-jenis', 'pemisah-jenis'].forEach(id => $(id).classList.toggle('sembunyi', tanpa));
+  // Sapu boleh beberapa browser (berbagi klaim tiket); Tatalaksana selalu satu.
+  $('pilih-data').classList.toggle('sembunyi', tanpa);
+  ['pilih-jenis', 'pemisah-jenis'].forEach(id => $(id).classList.toggle('sembunyi', tl));
+  $('pilih-jenis-ckg').classList.toggle('sembunyi', sp);
   $('panel-tatalaksana').classList.toggle('sembunyi', !tl);
   $('panel-sapu').classList.toggle('sembunyi', !sp);
-  if (tanpa) $('kabar-pekerja').classList.add('sembunyi'); else jelaskanPekerja();
+  if (tl) $('kabar-pekerja').classList.add('sembunyi'); else jelaskanPekerja();
 }
 
 // Pilihan jawaban alur TANPA BERKAS dibangun dari server (tatalaksana.PILIHAN,
@@ -806,8 +811,10 @@ function jelaskanPekerja(){
   k.classList.toggle('sembunyi', n < 2);
   if (n >= 2){
     k.textContent = `${n} browser akan terbuka, dan tiap browser perlu DIPERIKSA `
-      + `LOGIN SENDIRI dengan akun puskesmas yang BERBEDA. Datanya dibagi rata, `
-      + `jadi tidak ada peserta yang dikerjakan dua kali.`;
+      + `LOGIN SENDIRI dengan akun puskesmas yang BERBEDA. `
+      + ($('alur').value === 'sapu_belum'
+          ? `Jumlah peserta dibagi rata, dan tiap nomor tiket hanya diambil satu browser.`
+          : `Datanya dibagi rata, jadi tidak ada peserta yang dikerjakan dua kali.`);
   }
 }
 $('pekerja').onchange = jelaskanPekerja;

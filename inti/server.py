@@ -818,7 +818,10 @@ def _siapkan_dan_jalankan(nama_csv: str, rentang: str, jumlah_pekerja: int) -> N
 def _mulai_sapu(data: dict) -> dict:
     """
     Alur "Sapu Belum Pemeriksaan": pelayanan dewasa/lansia tanpa berkas.
-    Satu pekerja - semua browser melihat daftar yang sama (lihat _mulai_tatalaksana).
+
+    Boleh sampai MAKS_PEKERJA browser (pemilik, 21 Okt 2026). Semua browser
+    melihat daftar yang sama, jadi mereka berbagi klaim nomor tiket
+    (sapu_pelayanan.Bersama) dan jumlahnya dibagi rata.
     """
     global PEKERJA, _mulai_pada, _sumber
     jawaban, galat = sapu_pelayanan.urai_jawaban(data.get("sapu"))
@@ -830,17 +833,27 @@ def _mulai_sapu(data: dict) -> dict:
         return {"ok": False, "pesan": "Isi jumlah peserta (angka)."}
     if not 1 <= jumlah <= config.SAPU_MAKS:
         return {"ok": False, "pesan": f"Jumlah peserta 1 sampai {config.SAPU_MAKS} per jalan."}
+    try:
+        banyak = max(1, min(int(data.get("pekerja", 1)), config.MAKS_PEKERJA, jumlah))
+    except (TypeError, ValueError):
+        banyak = 1
     config.TAHAP = "pelayanan"
     config.KATEGORI = "dewasa"
     _mulai_pada = time.time()
     _sumber = "sapu-belum"
     PEKERJA.clear()
-    p = paralel.Pekerja(1, [], total=jumlah,
-                        kerjakan=lambda h, k, c: sapu_pelayanan.kerjakan(h, k, c, jumlah, jawaban))
-    p.kerja.lapor(f"Alur: Sapu Belum Pemeriksaan (tanpa berkas) · dewasa/lansia · maksimal {jumlah} peserta")
-    PEKERJA.append(p)
+    bersama = sapu_pelayanan.Bersama()
+    for nomor, jatah in enumerate(sapu_pelayanan.bagi_jumlah(jumlah, banyak), start=1):
+        p = paralel.Pekerja(
+            nomor, [], total=jatah,
+            kerjakan=(lambda j, n: lambda h, k, c: sapu_pelayanan.kerjakan(
+                h, k, c, j, jawaban, bersama=bersama, nomor=n))(jatah, nomor))
+        p.kerja.lapor(f"Alur: Sapu Belum Pemeriksaan (tanpa berkas) · dewasa/lansia · "
+                      f"{jatah} dari {jumlah} peserta · {banyak} browser")
+        PEKERJA.append(p)
     _kabar.update(keadaan="berjalan", pesan="")
-    p.mulai()
+    for p in PEKERJA:
+        p.mulai()
     return {"ok": True}
 
 

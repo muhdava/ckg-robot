@@ -95,12 +95,17 @@ function mulai(d){
     const n = parseInt(d.jumlah, 10);
     if (!(n >= 1 && n <= 500)) return J({ok: false, pesan: 'Jumlah peserta 1 sampai 500 per jalan.'});
     const antre = Array.from({length: Math.min(n, 40)}, (_, i) => i + 1);
-    const w = {nomor: 1, antre, sudah: 0, total: antre.length, login: false, akun: '', berikut: 0,
+    // Sapu: sampai 10 browser, peserta dibagi rata; Tatalaksana: satu browser.
+    const nb = d.alur === 'sapu_belum' ? Math.max(1, Math.min(+d.pekerja || 1, 10, antre.length)) : 1;
+    const w = Array.from({length: nb}, (_, i) => ({nomor: i + 1, antre: [], sudah: 0, total: 0, login: false,
+               akun: '', berikut: 0,
                catatan: [d.alur === 'sapu_belum'
-                           ? `- ${jam()} Alur: Sapu Belum Pemeriksaan (tanpa berkas) · dewasa/lansia · maksimal ${n} peserta`
+                           ? `- ${jam()} Alur: Sapu Belum Pemeriksaan (tanpa berkas) · dewasa/lansia · ${nb} browser · maksimal ${n} peserta`
                            : `- ${jam()} Alur: Tatalaksana Gigi · 2026 · Gigi · Gigi berlubang · maksimal ${n} peserta`,
-                         `- ${jam()} Browser portal dibuka — menunggu login…`]};
-    K = {tl: d.alur === 'tatalaksana_gigi', berkas: {sekolah: false}, pekerja: [w], hasil: [], mulai: Math.floor(Date.now() / 1000),
+                         `- ${jam()} Browser portal dibuka — menunggu login…`]}));
+    antre.forEach((no, i) => w[i % nb].antre.push(no));
+    w.forEach(x => { x.total = x.antre.length; });
+    K = {tl: d.alur === 'tatalaksana_gigi', berkas: {sekolah: false}, pekerja: w, hasil: [], mulai: Math.floor(Date.now() / 1000),
          berhenti: false, selesai: false};
     return J({ok: true});
   }

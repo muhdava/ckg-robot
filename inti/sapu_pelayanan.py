@@ -29,6 +29,7 @@ Per peserta:
 from __future__ import annotations
 
 import re
+import threading
 from datetime import date, datetime
 
 import config
@@ -37,6 +38,38 @@ import pekerjaan
 import portal
 from browser import simpan_gambar
 from peserta import Peserta, bersihkan_nama
+
+# ---------------------------------------------------------------- beberapa browser
+class Bersama:
+    """
+    Keadaan yang DIBAGI semua browser satu jalan (keputusan pemilik 21 Okt:
+    sampai 10 browser untuk alur ini).
+
+    Semua browser melihat tab Belum Pemeriksaan yang SAMA. Tanpa penjaga, dua
+    browser bisa mengambil peserta teratas yang sama: dua kali Mulai
+    Pemeriksaan, dua kali sapuan form. Karena semua pekerja hidup di proses
+    aplikasi yang sama (utas), nomor tiket DIKLAIM di bawah kunci sebelum
+    peserta dibuka - tiket yang sudah diklaim browser lain dilewati.
+    """
+
+    def __init__(self) -> None:
+        self.kunci = threading.Lock()
+        self.klaim: set[str] = set()
+
+    def ambil(self, tiket: str) -> bool:
+        with self.kunci:
+            if tiket in self.klaim:
+                return False
+            self.klaim.add(tiket)
+            return True
+
+
+def bagi_jumlah(jumlah: int, pekerja: int) -> list[int]:
+    """500 peserta untuk 3 browser -> [167, 167, 166]."""
+    pekerja = max(1, pekerja)
+    dasar, sisa = divmod(jumlah, pekerja)
+    return [dasar + (1 if i < sisa else 0) for i in range(pekerja)]
+
 
 # ---------------------------------------------------------------- pilihan
 # Nilai kiri = yang dipakai robot (parameter peserta.py / kunci rinci);
@@ -198,10 +231,12 @@ def _halaman_berikut(halaman) -> bool:
             pass
 
 
-def cari_calon(halaman, dicoba: set, catat, maks_halaman: int = 60) -> dict | None:
+def cari_calon(halaman, dicoba: set, catat, maks_halaman: int = 60,
+               bersama: Bersama | None = None) -> dict | None:
     """
     Baris pertama di tab Belum Pemeriksaan yang berumur >= 18 dan belum dicoba.
     Anak/balita (umur < 18) dilewati - alur ini untuk dewasa/lansia.
+    Dengan beberapa browser, tiketnya DIKLAIM dulu (lihat Bersama).
     """
     for nomor_hal in range(1, maks_halaman + 1):
         for b in halaman.evaluate(_JS_BARIS) or []:
@@ -212,6 +247,9 @@ def cari_calon(halaman, dicoba: set, catat, maks_halaman: int = 60) -> dict | No
                 dicoba.add(b["tiket"])          # anak / tanggal tak terbaca: tidak dikerjakan
                 continue
             if "Belum Pemeriksaan" not in b["status"] or "Mulai" not in b["tombol"]:
+                continue
+            if bersama is not None and not bersama.ambil(b["tiket"]):
+                dicoba.add(b["tiket"])          # sudah dikerjakan browser lain
                 continue
             b["umur"] = u
             b["halaman"] = nomor_hal
@@ -245,7 +283,9 @@ def bentuk_peserta(urutan: int, idt: dict, calon: dict, jawaban: dict) -> Pesert
 
 
 # ---------------------------------------------------------------- batch
-def kerjakan(halaman, kerja, catatan_hasil, jumlah: int, jawaban: dict) -> None:
+def kerjakan(halaman, kerja, catatan_hasil, jumlah: int, jawaban: dict,
+             bersama: Bersama | None = None, nomor: int = 1) -> None:
+    """`jumlah` = jatah browser INI; `bersama` dibagi semua browser satu jalan."""
     jumlah = max(1, min(int(jumlah), config.SAPU_MAKS))
     # Semua peserta dewasa/lansia lewat alur pelayanan biasa.
     config.TAHAP = "pelayanan"
@@ -262,11 +302,11 @@ def kerjakan(halaman, kerja, catatan_hasil, jumlah: int, jawaban: dict) -> None:
             kerja.akun = portal.nama_akun(halaman)
         try:
             buka_daftar(halaman, catat)
-            if urutan == 0:
+            if urutan == 0 and nomor == 1:
                 total = halaman.evaluate(_JS_TOTAL_BELUM)
                 kerja.lapor(f"Belum Pemeriksaan: {total if total >= 0 else '?'} peserta "
                             "(semua umur, rentang tanggal bawaan portal)")
-            calon = cari_calon(halaman, dicoba, catat)
+            calon = cari_calon(halaman, dicoba, catat, bersama=bersama)
         except Exception as e:
             r = {"keterangan": f"{type(e).__name__}: {e}"}
             if pekerjaan._galat_jaringan(r) and beruntun < 3:
@@ -324,6 +364,6 @@ def kerjakan(halaman, kerja, catatan_hasil, jumlah: int, jawaban: dict) -> None:
                            "Periksa catatannya, lalu jalankan lagi.")
             kerja.lapor(kerja.pesan)
             break
-    layanan.simpan_jejak(jejak_layanan, "-sapu")
+    layanan.simpan_jejak(jejak_layanan, f"-sapu-p{nomor}")
     if kerja.minta_berhenti:
         kerja.lapor("Dihentikan oleh pengguna.")

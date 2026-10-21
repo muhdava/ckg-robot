@@ -20,7 +20,8 @@ halaman web lokal (`localhost:8765`).
   *Belum Pemeriksaan*, dikerjakan seperti Pelayanan → Selesai (semua form, Selesaikan Layanan). Jawaban dipilih
   petugas di aplikasi: angka ukur lewat parameter (gizi Kurus/Normal/Gemuk, tensi & gula Normal/Tinggi/Rendah —
   rentang sama dengan template parameter), merokok, batuk, kontak TBC, rontgen, mata, serumen, karies, gigi hilang,
-  geriatri. Maksimal 500 per jalan, satu browser.
+  geriatri. Maksimal 500 per jalan, **sampai 10 browser** (tiap browser akun portal berbeda; jumlah dibagi rata,
+  tiap nomor tiket hanya diambil satu browser).
 - **Tatalaksana Gigi (tanpa berkas):** mencatat tatalaksana gigi berlubang langsung dari Tatalaksana →
   Daftar Tatalaksana portal (2026 · Gigi · Gigi berlubang, tab Belum Pencatatan). Jawaban form dipilih di
   aplikasi (bawaan: Diagnosis K02, Tindakan 23.4, obat Tidak/tidak ada indikasi, edukasi Ya, tindak lanjut
@@ -167,6 +168,14 @@ SQL Supabase dijalankan sekali, berurutan: `skema.sql` → `tambahan-website.sql
 ---
 
 ## Riwayat perubahan
+
+### 21 Okt 2026 — Sapu Belum Pemeriksaan sampai 10 browser (belum dirilis)
+- Alur Sapu bisa memakai **sampai 10 browser** (`config.MAKS_PEKERJA`), permintaan pemilik sebelum rilis 1830
+  diunggah. Semua browser melihat tab Belum Pemeriksaan yang sama, jadi mereka berbagi `sapu_pelayanan.Bersama`:
+  nomor tiket DIKLAIM di bawah kunci sebelum peserta dibuka, tiket milik browser lain dilewati. Jumlah peserta
+  dibagi rata (`bagi_jumlah`, 500/3 = 167/167/166); jumlah browser tidak melebihi jumlah peserta.
+- Aplikasi: pilihan "Jumlah browser" tampil untuk alur Sapu (Jenis CKG disembunyikan); Tatalaksana tetap satu browser.
+- Rekaman struktur per browser: `struktur_layanan-sapu-p<N>.json`. Demo website ikut.
 
 ### 2026.10.21.1830 — alur Sapu Belum Pemeriksaan
 - **Alur baru "Sapu Belum Pemeriksaan"** (`inti/sapu_pelayanan.py`): alur pelayanan normal tanpa berkas. Tabel tab
