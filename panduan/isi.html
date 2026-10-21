@@ -42,8 +42,9 @@
   otomatis, dari data Excel/CSV. Robot yang mengetik dan mengklik. Petugas tetap yang <b>login</b> ke portal
   dan yang <b>menentukan datanya</b>.</p>
   <p>Jenis CKG yang didukung: <b>Dewasa/Lansia</b>, <b>CKG Sekolah</b> (SD sampai SMA), dan <b>Balita</b>
-  (termasuk balita tanpa NIK). Ditambah <b>Tatalaksana Gigi</b>: mencatat tatalaksana gigi berlubang langsung
-  dari daftar portal, tanpa berkas data.</p>
+  (termasuk balita tanpa NIK). Ditambah dua alur <b>tanpa berkas data</b>: <b>Sapu Belum Pemeriksaan</b>
+  (dewasa/lansia di tab Belum Pemeriksaan halaman Pelayanan) dan <b>Tatalaksana Gigi</b> (tatalaksana gigi
+  berlubang dari daftar portal).</p>
 
   <h3>Dua akun yang berbeda</h3>
   <table>
@@ -307,6 +308,7 @@ Successfully installed playwright-1.6x ...
     <tr><td><b>Pendaftaran → Konfirmasi Hadir → Selesai</b></td><td>Peserta <b>sudah terdaftar tapi belum dikonfirmasi hadir</b>. Dicari di daftar pendaftaran, dikonfirmasi hadir, lalu formnya diisi.</td></tr>
     <tr><td><b>Pelayanan → Selesai</b></td><td>Semua peserta <b>sudah terdaftar</b>, tinggal diisi formnya. Yang sudah ada di tab "Selesai Pemeriksaan" dilewati.</td></tr>
     <tr><td><b>Pelayanan → Selesai (sapu tab Selesai)</b></td><td>Seperti di atas, tapi peserta di tab "Selesai Pemeriksaan" ikut dibuka, lalu form yang masih kosong diisi.</td></tr>
+    <tr><td><b>Sapu Belum Pemeriksaan</b> <span class="kecil">(tanpa berkas)</span></td><td>Peserta dewasa/lansia <b>sudah terdaftar</b> dan ada di tab <b>Belum Pemeriksaan</b> halaman Pelayanan, tapi belum diinput pemeriksaannya, dan <b>tidak ada berkas datanya</b>. Jawaban dipilih di aplikasi. Lihat penjelasan khusus setelah langkah 4.</td></tr>
     <tr><td><b>Tatalaksana Gigi</b> <span class="kecil">(tanpa berkas)</span></td><td>Tatalaksana gigi berlubang <b>sudah dilakukan tapi belum diinput</b>. Pesertanya diambil langsung dari portal, tidak perlu berkas. Lihat penjelasan khusus setelah langkah 4.</td></tr>
   </table>
   <div class="kotak tips"><b>Ragu memilih?</b>
@@ -342,6 +344,65 @@ Successfully installed playwright-1.6x ...
   notifikasi Windows di pojok kanan bawah, dan judul tab yang berkedip. Robot <b>tidak</b> berhenti. Tekan
   <b class="tombol">Mengerti</b> setelah membacanya. Saat pertama kali menekan <b>Buka browser &amp; mulai</b>, browser
   meminta izin notifikasi: pilih <b>Allow / Izinkan</b>.</div>
+  </div>
+</section>
+
+<section>
+  <div class="langkah">
+  <h3><span class="n">🩺</span> Alur khusus: <b>Sapu Belum Pemeriksaan</b> (tanpa berkas)</h3>
+  <p>Untuk peserta <b>dewasa/lansia (18 tahun ke atas)</b> yang sudah terdaftar dan berada di tab
+  <b>Belum Pemeriksaan</b> halaman <b>Pelayanan</b> (rentang tanggal bawaan portal), tetapi pemeriksaannya belum
+  diinput dan <b>tidak ada berkas Excel/CSV-nya</b>. Robot mengambil peserta dari atas daftar (anak dilewati), membuka
+  detailnya untuk membaca NIK dan jenis kelamin, lalu mengerjakannya <b>persis seperti Pelayanan → Selesai</b>:
+  Mulai Pemeriksaan, semua form diisi, Selesaikan Layanan.</p>
+  <figure><img src="gambar/s1-sapu.png" style="max-width:142mm; margin:0 auto"><figcaption>Alur Sapu Belum Pemeriksaan dipilih: jumlah peserta, 12 jawaban, dan jumlah browser</figcaption></figure>
+  </div>
+</section>
+
+<section>
+  <div class="langkah">
+  <ol>
+    <li>Pada <b>Alur CKG</b>, klik kartu <b>Sapu Belum Pemeriksaan</b>.</li>
+    <li>Isi <b>Jumlah peserta</b> (1–500 per jalan). Yang sudah dikerjakan pindah dari tab Belum Pemeriksaan, jadi
+      menjalankan lagi otomatis melanjutkan.</li>
+    <li>Pilih <b>jawaban untuk semua peserta</b> (tabel di bawah). Yang diganti dari bawaan berwarna kuning.</li>
+    <li>Pilih <b>Jumlah browser</b> (1–10). Jumlah peserta dibagi rata, dan <b>tiap peserta hanya dikerjakan satu
+      browser</b>.</li>
+    <li>Tekan <b class="tombol">Buka browser &amp; mulai</b>, login portal di <b>tiap</b> browser, lalu
+      <b class="tombol">Saya sudah login — lanjutkan</b>.</li>
+  </ol>
+  <table class="rapat">
+    <tr><th style="width:30%">Pilihan</th><th style="width:28%">Bawaan</th><th>Isi lainnya</th></tr>
+    <tr><td>Gizi (BB, TB, lingkar perut)</td><td>Normal</td><td>Kurus, Gemuk</td></tr>
+    <tr><td>Tekanan darah</td><td>Normal (110–139 / 65–89)</td><td>Tinggi (145–180 / 95–110), Rendah (85–99 / 50–60)</td></tr>
+    <tr><td>Gula darah sewaktu</td><td>Normal (110–139)</td><td>Tinggi (180–260), Rendah (55–69)</td></tr>
+    <tr><td>Merokok</td><td>Tidak merokok</td><td>Ya – rokok konvensional, terpapar asap</td></tr>
+    <tr><td>Batuk</td><td>Tidak batuk</td><td>Kurang dari 2 minggu, lebih dari 2 minggu</td></tr>
+    <tr><td>Kontak TBC</td><td>Tidak ada kontak</td><td>Kontak serumah, kontak erat</td></tr>
+    <tr><td>Radiografi toraks</td><td>Tidak dilakukan</td><td>Dilakukan – Normal</td></tr>
+    <tr><td>Tajam penglihatan</td><td>Normal</td><td>Curiga gangguan penglihatan</td></tr>
+    <tr><td>Telinga (serumen impaksi)</td><td>Tidak ada</td><td>Ada serumen</td></tr>
+    <tr><td>Gigi karies / gigi hilang</td><td>Tidak</td><td>Ya</td></tr>
+    <tr><td>Geriatri (lansia ≥ 60)</td><td>Normal</td><td>Tidak Normal</td></tr>
+  </table>
+  <p class="kecil"><b>Angka ukur dari parameter:</b> berat, tinggi, lingkar perut, tensi, dan gula darah diambil dalam
+  rentang yang dipilih — sama dengan Template DEWASA-LANSIA (parameter) — dan selalu sama untuk NIK yang sama bila
+  dijalankan ulang. Pertanyaan lain dijawab normal/negatif; riwayat DM dijawab Tidak. Pemeriksaan lab/lanjutan
+  (HIV, hepatitis, lipid, EKG, dll.) tidak diisi.</p>
+  <div class="kotak penting"><b>Jawaban berlaku sama untuk SEMUA peserta dalam satu kali jalan</b>
+  Robot tidak tahu hasil pemeriksaan tiap orang — yang diisi adalah pilihan di atas. Pakai alur ini hanya bila hasil
+  peserta memang sesuai. Peserta dengan hasil berbeda (perokok, tensi tinggi, dll.) jalankan terpisah dengan
+  pilihan yang sesuai, atau pakai berkas data / input manual.</div>
+  <div class="kotak catat"><b>Beberapa browser = beberapa akun portal</b>
+  Tiap browser harus login dengan <b>akun puskesmas yang berbeda</b>. Portal hanya mengizinkan satu sesi per akun:
+  akun yang sama di dua browser saling mengeluarkan.</div>
+  <figure><img src="gambar/s2-kemajuan.png" style="max-width:140mm; margin:0 auto"><figcaption>Tiga browser bekerja bersamaan (contoh dengan data rekaan)</figcaption></figure>
+  <p class="kecil">Hasil dibaca seperti alur biasa (bagian F) dan diunduh lewat <b class="tombol">⬇ Unduh Excel</b>.
+  Keterangan tiap baris memuat nomor tiket, umur, dan jenis kelamin peserta. <b>Buat Laporan</b> tidak dipakai karena
+  tidak ada berkas.</p>
+  <div class="kotak tips"><b>Mau mencoba dulu?</b>
+  Nyalakan <code>mode uji = ya</code> di <code>pengaturan.txt</code>. Pada alur ini robot hanya membaca daftar dan
+  identitas peserta lalu mencatat angka & jawaban yang <b>akan</b> diisi — <b>tidak</b> menekan Mulai Pemeriksaan.</div>
   </div>
 </section>
 
@@ -505,6 +566,8 @@ Successfully installed playwright-1.6x ...
     <tr><td>"Aplikasi sudah berjalan dan memakai port 8765"</td><td>CKG Robot masih terbuka (jendela hitam di taskbar). Halamannya dibukakan lagi; pakai yang itu. Setelah pembaruan manual: tutup jendela lama, lalu klik ikon lagi.</td></tr>
     <tr><td>"Terlalu banyak percobaan"</td><td>Salah kata sandi 5 kali. Tunggu 5 menit.</td></tr>
     <tr><td>Diminta login portal terus</td><td>Jangan tutup jendela browser robot di tengah batch, dan jangan login portal dengan akun yang sama di browser lain (portal hanya mengizinkan satu sesi per akun).</td></tr>
+    <tr><td>Sapu: "Tidak ada lagi peserta dewasa/lansia di tab Belum Pemeriksaan"</td><td>Semua peserta ≥ 18 tahun dalam rentang tanggal portal sudah dikerjakan; sisanya anak-anak atau di luar rentang tanggal.</td></tr>
+    <tr><td>Sapu dengan beberapa browser: browser lain terus minta login</td><td>Dua browser memakai akun yang sama. Login dengan akun puskesmas yang berbeda di tiap browser.</td></tr>
     <tr><td>Tatalaksana Gigi: banyak <span class="tag t-merah">gagal_isi</span></td><td>Form di portal mungkin berubah (pilihan kodenya diganti). Laporkan ke admin dengan catatan proses; peserta itu tidak dikirim, jadi aman diulang setelah diperbaiki.</td></tr>
     <tr><td>Tatalaksana Gigi berhenti "semua peserta di halaman pertama sudah dicoba"</td><td>Peserta teratas di daftar portal gagal semua. Periksa catatan prosesnya, catat manual bila perlu, lalu jalankan lagi.</td></tr>
     <tr><td>Berkas tidak muncul di "Berkas data peserta"</td><td>Pastikan berbentuk <code>.csv</code> dan ada di folder <code>data\</code> (Start Menu → <b>CKG Robot - folder data</b>), lalu muat ulang halaman.</td></tr>

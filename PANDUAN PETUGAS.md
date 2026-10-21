@@ -145,6 +145,36 @@ dengan warna; lembar **Rekap** berisi jumlah tiap status dan totalnya.
 > setiap kali kamu menekan "Buka browser & mulai" lagi. Riwayat lengkapnya
 > tetap tersimpan sebagai CSV di folder `hasil\`.
 
+### Alur khusus: Sapu Belum Pemeriksaan (tanpa berkas)
+
+Untuk peserta **dewasa/lansia (≥ 18 tahun)** yang sudah terdaftar dan ada di tab
+**Belum Pemeriksaan** halaman **Pelayanan**, tapi pemeriksaannya belum diinput
+dan tidak ada berkas datanya. Robot mengambil peserta dari atas daftar (anak
+dilewati), membaca NIK & jenis kelamin di halaman detailnya, lalu mengerjakannya
+seperti **Pelayanan → Selesai**: Mulai Pemeriksaan, semua form, Selesaikan Layanan.
+
+1. Pada **Alur CKG**, klik kartu **Sapu Belum Pemeriksaan**.
+2. Isi **Jumlah peserta** (1–500 per jalan) dan **Jumlah browser** (1–10).
+3. Pilih jawaban untuk semua peserta: **gizi** (Normal/Kurus/Gemuk), **tensi** &
+   **gula** (Normal/Tinggi/Rendah), **merokok**, **batuk**, **kontak TBC**,
+   **rontgen**, **tajam penglihatan**, **serumen**, **karies**, **gigi hilang**,
+   **geriatri**. Bawaannya semua normal; yang diganti berwarna kuning.
+4. Tekan **Buka browser & mulai**, login portal di tiap browser, lalu **Saya sudah login**.
+
+Angka BB, TB, lingkar perut, tensi, dan gula diambil dalam rentang parameter yang
+dipilih (sama dengan Template DEWASA-LANSIA parameter), tetap untuk NIK yang sama.
+Pertanyaan lain dijawab normal/negatif; riwayat DM dijawab Tidak.
+
+> **Jawaban berlaku sama untuk SEMUA peserta dalam satu kali jalan.** Pakai hanya
+> bila hasil peserta memang sesuai; yang berbeda jalankan terpisah atau input manual.
+
+> **Beberapa browser = beberapa akun.** Tiap browser login dengan akun puskesmas
+> yang BERBEDA. Jumlah peserta dibagi rata dan tiap peserta hanya dikerjakan satu
+> browser.
+
+Coba dulu dengan `mode uji = ya`: pada alur ini robot hanya mencatat angka &
+jawaban yang akan diisi, tanpa menekan Mulai Pemeriksaan.
+
 ### Alur khusus: Tatalaksana Gigi (tanpa berkas)
 
 Untuk peserta dengan hasil **gigi berlubang** yang tatalaksananya **sudah

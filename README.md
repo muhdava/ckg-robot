@@ -169,6 +169,13 @@ SQL Supabase dijalankan sekali, berurutan: `skema.sql` → `tambahan-website.sql
 
 ## Riwayat perubahan
 
+### 21 Okt 2026 — Panduan: Sapu Belum Pemeriksaan (tanpa rilis aplikasi)
+- **Panduan PDF** (25 halaman) dan `PANDUAN PETUGAS.md`: halaman "Alur khusus: Sapu Belum Pemeriksaan" di bab E
+  (kapan dipakai, 5 langkah, tabel 12 pilihan + bawaan + rentang angka, peringatan jawaban sama untuk semua
+  peserta, beberapa browser = beberapa akun, mode uji), baris di tabel alur, dua baris masalah di bab I.
+- Gambar `s1-sapu.png`, `s2-kemajuan.png` (3 browser) dari demo website (data rekaan); `t1-tatalaksana.png`,
+  `t2-hasil.png` diambil ulang supaya kartu alur Sapu ikut terlihat.
+
 ### 2026.10.21.1837 — Sapu Belum Pemeriksaan sampai 10 browser
 Menggantikan paket 1830 (tidak pernah diterbitkan).
 - Alur Sapu bisa memakai **sampai 10 browser** (`config.MAKS_PEKERJA`), permintaan pemilik sebelum rilis 1830
