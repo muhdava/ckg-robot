@@ -168,7 +168,7 @@ SQL Supabase dijalankan sekali, berurutan: `skema.sql` → `tambahan-website.sql
 
 ## Riwayat perubahan
 
-### 21 Okt 2026 — alur Sapu Belum Pemeriksaan (belum dirilis)
+### 2026.10.21.1830 — alur Sapu Belum Pemeriksaan
 - **Alur baru "Sapu Belum Pemeriksaan"** (`inti/sapu_pelayanan.py`): alur pelayanan normal tanpa berkas. Tabel tab
   Belum Pemeriksaan TIDAK memuat NIK/JK (hanya nama, tanggal lahir, nomor tiket), jadi robot memilih baris berumur
   ≥ 18, menekan "Mulai" di baris itu (hanya membuka detail), membaca NIK + jenis kelamin + tiket dari kepala halaman
