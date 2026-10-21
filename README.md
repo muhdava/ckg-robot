@@ -176,8 +176,8 @@ SQL Supabase dijalankan sekali, berurutan: `skema.sql` → `tambahan-website.sql
 - Gambar `s1-sapu.png`, `s2-kemajuan.png` (3 browser) dari demo website (data rekaan); `t1-tatalaksana.png`,
   `t2-hasil.png` diambil ulang supaya kartu alur Sapu ikut terlihat.
 
-### 2026.10.21.1837 — Sapu Belum Pemeriksaan sampai 10 browser
-Menggantikan paket 1830 (tidak pernah diterbitkan).
+### 2026.10.21.1908 — Sapu Belum Pemeriksaan sampai 10 browser, panduan baru
+Menggantikan paket 1830 dan 1837 (tidak pernah diterbitkan); membawa Panduan PDF 25 halaman.
 - Alur Sapu bisa memakai **sampai 10 browser** (`config.MAKS_PEKERJA`), permintaan pemilik sebelum rilis 1830
   diunggah. Semua browser melihat tab Belum Pemeriksaan yang sama, jadi mereka berbagi `sapu_pelayanan.Bersama`:
   nomor tiket DIKLAIM di bawah kunci sebelum peserta dibuka, tiket milik browser lain dilewati. Jumlah peserta
